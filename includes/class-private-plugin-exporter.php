@@ -165,15 +165,25 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
      *
      * @param array $plugin Plugin data
      * @return bool True if it has an active subscription
+     * 
+     * Note: This method includes WooCommerce.com plugins in the following scenarios:
+     * 1. When there's an active subscription for the plugin
+     * 2. When there's no marketplace connection (local/dev environments) - FALLBACK
+     * 
+     * The fallback ensures plugins are included in local/dev environments where
+     * WooCommerce Helper may not be connected. In production environments with
+     * marketplace connections, only plugins with active subscriptions are included.
      */
     private function has_woocommerce_com_subscription($plugin) {
         if (!class_exists('WC_Helper') || !class_exists('WC_Helper_Options')) {
-            return false;
+            Logger::debug('WC_Helper or WC_Helper_Options not available - including WooCommerce.com plugin for local/dev environment');
+            return true; // Fallback for local/dev environments
         }
         
         // Extract product ID from Woo header
         list($product_id, $file_id) = explode(':', $plugin['Woo']);
         if (empty($product_id)) {
+            Logger::debug('No product ID found in Woo header - excluding plugin');
             return false;
         }
         
@@ -181,8 +191,10 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
         $auth = \WC_Helper_Options::get('auth');
         $subscriptions = \WC_Helper::get_subscriptions();
         
+        // If no auth or subscriptions, this is likely a local/dev environment
         if (empty($auth['site_id']) || empty($subscriptions)) {
-            return false;
+            Logger::debug('No marketplace connection detected - including WooCommerce.com plugin for local/dev environment');
+            return true; // Fallback for local/dev environments
         }
         
         // Check for an active subscription
@@ -192,10 +204,13 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
             }
             
             if (in_array(absint($auth['site_id']), $subscription['connections'])) {
+                Logger::debug("Found active subscription for product {$product_id}");
                 return true;
             }
         }
         
+        // No active subscription found, but we're connected to marketplace
+        Logger::debug("No active subscription found for product {$product_id} - excluding plugin");
         return false;
     }
 
