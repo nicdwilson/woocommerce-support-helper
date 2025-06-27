@@ -233,8 +233,14 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
     public function modify_plugin_list($settings) {
         Logger::debug('modify_plugin_list called');
         
-        if (!is_admin() || !isset($settings['blueprint_step_groups'])) {
-            Logger::debug('Not admin or no blueprint_step_groups');
+        if (!is_admin()) {
+            Logger::debug('Not admin context');
+            return $settings;
+        }
+        
+        // Only run on the Blueprint settings page where blueprint_step_groups is available
+        if (!isset($settings['blueprint_step_groups'])) {
+            Logger::debug('No blueprint_step_groups found in settings - not on Blueprint page');
             return $settings;
         }
 
