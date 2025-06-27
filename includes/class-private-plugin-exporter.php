@@ -169,10 +169,13 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
      * Note: This method includes WooCommerce.com plugins in the following scenarios:
      * 1. When there's an active subscription for the plugin
      * 2. When there's no marketplace connection (local/dev environments) - FALLBACK
+     * 3. When connected to marketplace but no active subscription - TEMPORARY FALLBACK
      * 
      * The fallback ensures plugins are included in local/dev environments where
      * WooCommerce Helper may not be connected. In production environments with
      * marketplace connections, only plugins with active subscriptions are included.
+     * 
+     * TODO: Remove temporary fallback when ready to require subscriptions.
      */
     private function has_woocommerce_com_subscription($plugin) {
         if (!class_exists('WC_Helper') || !class_exists('WC_Helper_Options')) {
@@ -210,8 +213,9 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
         }
         
         // No active subscription found, but we're connected to marketplace
-        Logger::debug("No active subscription found for product {$product_id} - excluding plugin");
-        return false;
+        // TEMPORARY: Include all WooCommerce.com plugins for now
+        Logger::debug("No active subscription found for product {$product_id} - including plugin (temporary fallback)");
+        return true; // Temporary fallback - remove when ready to require subscriptions
     }
 
     /**
