@@ -112,22 +112,37 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
      * @return bool True if plugin is available via updaters
      */
     private function is_plugin_available_via_updater($slug, $plugin) {
+        // Check if we're in staging or local environment
+        $environment = defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : '';
+        $is_staging_or_local = in_array($environment, ['staging', 'local', 'development']);
+        
+        if ($is_staging_or_local) {
+            Logger::debug("Environment detected as {$environment} - including all plugins");
+            return true; // Include all plugins in staging/local environments
+        }
+        
         // Always include WordPress.org plugins
         $info = $this->get_plugin_info($slug);
         if (isset($info->download_link)) {
+            Logger::debug("Plugin {$plugin['Name']} is available on WordPress.org");
             return true;
         }
         
-        // Check if it's a WooCommerce.com plugin with active subscription
+        // Check if it's a WooCommerce.com plugin
         if ($this->is_woocommerce_com_plugin($plugin)) {
-            return $this->has_woocommerce_com_subscription($plugin);
+            // For WooCommerce.com plugins, check subscription
+            $has_subscription = $this->has_woocommerce_com_subscription($plugin);
+            if ($has_subscription) {
+                Logger::debug("WooCommerce.com plugin {$plugin['Name']} has valid subscription");
+                return true;
+            } else {
+                Logger::debug("WooCommerce.com plugin {$plugin['Name']} has no valid subscription - excluding");
+                return false;
+            }
         }
         
-        // Check if it's available via other update mechanisms
-        if ($this->has_custom_update_source($plugin)) {
-            return true;
-        }
-        
+        // Not a WooCommerce.com plugin and not on WordPress.org
+        Logger::debug("Plugin {$plugin['Name']} is not a WooCommerce.com plugin and not on WordPress.org - excluding");
         return false;
     }
 
@@ -165,28 +180,17 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
      *
      * @param array $plugin Plugin data
      * @return bool True if it has an active subscription
-     * 
-     * Note: This method includes WooCommerce.com plugins in the following scenarios:
-     * 1. When there's an active subscription for the plugin
-     * 2. When there's no marketplace connection (local/dev environments) - FALLBACK
-     * 3. When connected to marketplace but no active subscription - TEMPORARY FALLBACK
-     * 
-     * The fallback ensures plugins are included in local/dev environments where
-     * WooCommerce Helper may not be connected. In production environments with
-     * marketplace connections, only plugins with active subscriptions are included.
-     * 
-     * TODO: Remove temporary fallback when ready to require subscriptions.
      */
     private function has_woocommerce_com_subscription($plugin) {
         if (!class_exists('WC_Helper') || !class_exists('WC_Helper_Options')) {
-            Logger::debug('WC_Helper or WC_Helper_Options not available - including WooCommerce.com plugin for local/dev environment');
-            return true; // Fallback for local/dev environments
+            Logger::debug('WC_Helper or WC_Helper_Options not available - no subscription check possible');
+            return false;
         }
         
         // Extract product ID from Woo header
         list($product_id, $file_id) = explode(':', $plugin['Woo']);
         if (empty($product_id)) {
-            Logger::debug('No product ID found in Woo header - excluding plugin');
+            Logger::debug('No product ID found in Woo header - no subscription check possible');
             return false;
         }
         
@@ -194,10 +198,10 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
         $auth = \WC_Helper_Options::get('auth');
         $subscriptions = \WC_Helper::get_subscriptions();
         
-        // If no auth or subscriptions, this is likely a local/dev environment
+        // If no auth or subscriptions, no valid subscription
         if (empty($auth['site_id']) || empty($subscriptions)) {
-            Logger::debug('No marketplace connection detected - including WooCommerce.com plugin for local/dev environment');
-            return true; // Fallback for local/dev environments
+            Logger::debug('No marketplace connection or subscriptions available');
+            return false;
         }
         
         // Check for an active subscription
@@ -212,10 +216,9 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
             }
         }
         
-        // No active subscription found, but we're connected to marketplace
-        // TEMPORARY: Include all WooCommerce.com plugins for now
-        Logger::debug("No active subscription found for product {$product_id} - including plugin (temporary fallback)");
-        return true; // Temporary fallback - remove when ready to require subscriptions
+        // No active subscription found
+        Logger::debug("No active subscription found for product {$product_id}");
+        return false;
     }
 
     /**
