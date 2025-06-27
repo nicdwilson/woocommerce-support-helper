@@ -178,8 +178,8 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
         }
         
         // Check if there's an active subscription for this product
-        $auth = WC_Helper_Options::get('auth');
-        $subscriptions = WC_Helper::get_subscriptions();
+        $auth = \WC_Helper_Options::get('auth');
+        $subscriptions = \WC_Helper::get_subscriptions();
         
         if (empty($auth['site_id']) || empty($subscriptions)) {
             return false;
