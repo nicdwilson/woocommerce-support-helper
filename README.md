@@ -76,7 +76,3 @@ TBA
 ## License
 
 This project is licensed under the GPL v2 or later.
-
-## Support
-
-For support, please visit [Happy Plugins Support](https://happyplugins.com/support).
