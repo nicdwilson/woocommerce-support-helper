@@ -1,4 +1,4 @@
-# Happy Blueprint Exporter
+# WooCommerce Support Helper
 
 Extends WooCommerce Blueprint exporter with additional functionality for Happy Plugins.
 
