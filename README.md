@@ -1,47 +1,56 @@
 # WooCommerce Support Helper
 
-Extends WooCommerce Blueprint exporter with additional functionality for Happy Plugins.
+A modular WordPress plugin that extends WooCommerce with additional functionality for Happy Plugins.
 
 ## Description
 
-Happy Blueprint Exporter is a WordPress plugin that extends the WooCommerce Blueprint exporter functionality. It allows you to export and import settings from Happy Plugins products as part of your WooCommerce Blueprint export.
+WooCommerce Support Helper is a modular WordPress plugin that extends WooCommerce functionality through a component-based architecture. It currently includes the Blueprint Exporter module, which intelligently filters private plugins during WooCommerce Blueprint exports.
 
 ## Requirements
 
 - WordPress 6.0 or higher
 - PHP 7.4 or higher
-- WooCommerce 9.9.3 or higher
+- WooCommerce 8.0 or higher
 
 ## Features
 
-- Extends WooCommerce Blueprint exporter
-- Full support for HPOS (High-Performance Order Storage)
-- Compatible with both traditional and custom order tables
-- Modular exporter system for easy extension
-- Automatically enables private plugin exports
-- Includes private plugin settings in Blueprint exports
+### Core Features
+- **Modular Architecture**: Component-based design for easy extension
+- **Module Loader**: Centralized module management system
+- **Full HPOS Support**: Compatible with WooCommerce's High-Performance Order Storage
+
+### Blueprint Exporter Module
+- **Intelligent Plugin Filtering**: Only exports private plugins available via updaters
+- **Environment Awareness**: Different behavior for staging vs production
+- **WooCommerce.com Integration**: Checks plugin subscriptions before inclusion
+- **WordPress.org Support**: Automatically includes WordPress.org plugins
+- **Blueprint Integration**: Seamless integration with WooCommerce Blueprint system
 
 ## Installation
 
-1. Upload the `happy-blueprint-exporter` folder to the `/wp-content/plugins/` directory
+1. Upload the `woocommerce-support-helper` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Run `composer install` in the plugin directory to install dependencies
 
-## Private Plugin Support
+## Module System
 
-The plugin automatically enables private plugin exports in WooCommerce Blueprint. This means that when you create a Blueprint export:
+The plugin uses a modular architecture where each major feature is organized into its own module:
 
-1. All private plugins will be included in the export
-2. Private plugin settings will be preserved
-3. The export will work seamlessly with both public and private plugins
+### Current Modules
 
-This is particularly useful for:
-- Development environments
-- Staging sites
-- Multi-site setups
-- Custom plugin deployments
+#### Blueprint Exporter (`includes/blueprint-exporter/`)
+- Extends WooCommerce Blueprint exporter functionality
+- Provides intelligent private plugin filtering
+- Ensures successful blueprint imports
 
-Note: Make sure you have the necessary permissions and licenses to export private plugins.
+### Adding New Modules
+
+To add a new module:
+
+1. Create a new directory in `includes/` (e.g., `includes/your-module/`)
+2. Create a main module class (e.g., `class-your-module.php`)
+3. Register the module in `includes/class-module-loader.php`
+4. Follow the established naming conventions and structure
 
 ## Development
 
@@ -55,23 +64,45 @@ Note: Make sure you have the necessary permissions and licenses to export privat
 
 1. Clone the repository
 2. Run `composer install` to install PHP dependencies
-3. Run `composer test` to run the test suite
-4. Run `composer phpcs` to check coding standards
+3. Run `composer test:manual` to test the plugin
+4. Run `composer test` to run the test suite (when configured)
+5. Run `composer phpcs` to check coding standards
 
-### Building Exporters
+### Project Structure
 
-To create a new exporter:
+```
+woocommerce-support-helper/
+├── woocommerce-support-helper.php     # Main plugin file
+├── composer.json                       # Dependencies and autoloading
+├── includes/                           # Core plugin classes and modules
+│   ├── class-module-loader.php        # Module management system
+│   ├── class-logger.php               # Logging utility
+│   └── blueprint-exporter/            # Blueprint Exporter module
+│       ├── class-blueprint-exporter.php      # Main module class
+│       ├── class-abstract-exporter.php       # Abstract base class
+│       ├── class-private-plugin-exporter.php # Private plugin handling
+│       └── README.md                  # Module documentation
+├── tests/                             # Test files
+│   ├── test-instantiate.php          # Class instantiation tests
+│   ├── test-simple.php               # Basic functionality tests
+│   ├── test-load.php                 # Loading tests
+│   └── README.md                     # Testing documentation
+├── vendor/                            # Composer dependencies
+└── .gitignore                         # Git ignore rules
+```
 
-TBA
+### Testing
 
-### HPOS Support
+```bash
+# Run manual tests
+composer test:manual
 
-The plugin is fully compatible with WooCommerce's High-Performance Order Storage (HPOS) system. When creating order-related exporters:
+# Run PHPUnit tests (when configured)
+composer test
 
-
-## Directory Structure
-
-TBA
+# Check coding standards
+composer phpcs
+```
 
 ## License
 

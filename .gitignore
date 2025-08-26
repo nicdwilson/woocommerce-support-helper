@@ -1,4 +1,4 @@
-# Wordpress - ignore core, configuration, examples, uploads and logs.
+# WooCommerce Support Helper Plugin
 # https://github.com/github/gitignore/blob/main/WordPress.gitignore
 
 # Core
@@ -46,3 +46,16 @@ wp-config.php
 # Note: If you wish to whitelist themes,
 # uncomment the next line
 #/wp-content/themes
+
+# Plugin specific
+/vendor/
+/node_modules/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Test artifacts (but keep test files)
+/tests/*.log
+/tests/coverage/
+/tests/build/

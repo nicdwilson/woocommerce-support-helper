@@ -1,18 +1,18 @@
 <?php
-namespace HappyBlueprintExporter;
+namespace WooCommerceSupportHelper;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
 /**
- * Logger class for Happy Blueprint Exporter
+ * Logger class for WooCommerce Support Helper
  */
 class Logger {
     /**
      * The log source identifier.
      */
-    const SOURCE = 'happy-blueprint-exporter';
+    const SOURCE = 'woocommerce-support-helper';
 
     /**
      * Get the WooCommerce logger instance.

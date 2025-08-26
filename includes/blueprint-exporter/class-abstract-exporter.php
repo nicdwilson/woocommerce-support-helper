@@ -1,10 +1,10 @@
 <?php
-namespace HappyBlueprintExporter;
+namespace WooCommerceSupportHelper\BlueprintExporter;
 
 /**
  * Abstract base class for exporters
  *
- * @package HappyPlugins\BlueprintExporter
+ * @package WooCommerceSupportHelper\BlueprintExporter
  */
 
 if (!defined('ABSPATH')) {

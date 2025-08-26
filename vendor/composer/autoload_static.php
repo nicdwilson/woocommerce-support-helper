@@ -8,9 +8,14 @@ class ComposerStaticInit4b7a21fc1814f7aa75903bee8d76e645
 {
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'HappyBlueprintExporter\\Abstract_Exporter' => __DIR__ . '/../..' . '/includes/class-abstract-exporter.php',
-        'HappyBlueprintExporter\\Logger' => __DIR__ . '/../..' . '/includes/class-logger.php',
-        'HappyBlueprintExporter\\Private_Plugin_Exporter' => __DIR__ . '/../..' . '/includes/class-private-plugin-exporter.php',
+        'WooCommerceSupportHelper\\BlueprintExporter\\Abstract_Exporter' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-abstract-exporter.php',
+        'WooCommerceSupportHelper\\BlueprintExporter\\Blueprint_Exporter' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-blueprint-exporter.php',
+        'WooCommerceSupportHelper\\BlueprintExporter\\Private_Plugin_Exporter' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-private-plugin-exporter.php',
+        'WooCommerceSupportHelper\\Logger' => __DIR__ . '/../..' . '/includes/class-logger.php',
+        'WooCommerceSupportHelper\\Module_Loader' => __DIR__ . '/../..' . '/includes/class-module-loader.php',
+        'WooCommerceSupportHelper\\ShippingMethodsExporter\\Abstract_Shipping_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-abstract-shipping-exporter.php',
+        'WooCommerceSupportHelper\\ShippingMethodsExporter\\AustraliaPost\\Australia_Post_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-australia-post-exporter.php',
+        'WooCommerceSupportHelper\\ShippingMethodsExporter\\Shipping_Methods_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

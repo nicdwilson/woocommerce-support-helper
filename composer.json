@@ -1,5 +1,5 @@
 {
-    "name": "happyplugins/happy-blueprint-exporter",
+    "name": "happyplugins/woocommerce-support-helper",
     "description": "Extends WooCommerce Blueprint exporter with intelligent private plugin filtering. Only exports private plugins that are available via updaters (like WooCommerce.com extensions) to ensure successful blueprint imports.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
@@ -15,11 +15,25 @@
     },
     "autoload": {
         "classmap": [
-            "includes/"
+            "includes/",
+            "includes/blueprint-exporter/",
+            "includes/shipping-methods-exporter/",
+            "includes/shipping-methods-exporter/woocommerce-shipping-australia-post/",
+            "includes/shipping-methods-exporter/woocommerce-shipping-fedex/",
+            "includes/shipping-methods-exporter/woocommerce-shipping-royalmail/",
+            "includes/shipping-methods-exporter/woocommerce-shipping-ups/",
+            "includes/shipping-methods-exporter/woocommerce-shipping-usps/",
+            "includes/shipping-methods-exporter/woocommerce-table-rate-shipping/"
+        ]
+    },
+    "autoload-dev": {
+        "classmap": [
+            "tests/"
         ]
     },
     "scripts": {
         "test": "phpunit",
+        "test:manual": "php tests/test-instantiate.php",
         "phpcs": "phpcs",
         "phpcbf": "phpcbf"
     },

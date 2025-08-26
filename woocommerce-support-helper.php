@@ -1,44 +1,44 @@
 <?php
 /**
- * Plugin Name: Happy Blueprint Exporter
+ * Plugin Name: WooCommerce Support Helper
  * Plugin URI: https://happyplugins.com
  * Description: Extends WooCommerce Blueprint exporter with intelligent private plugin filtering. Only exports private plugins that are available via updaters (like WooCommerce.com extensions) to ensure successful blueprint imports.
  * Version: 1.0.0
  * Author: Happy Plugins
  * Author URI: https://happyplugins.com
- * Text Domain: happy-blueprint-exporter
+ * Text Domain: woocommerce-support-helper
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * WC requires at least: 8.0
  * WC tested up to: 8.9.3
  *
- * @package HappyBlueprintExporter
+ * @package WooCommerceSupportHelper
  */
 
-namespace HappyBlueprintExporter;
+namespace WooCommerceSupportHelper;
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
 // Define plugin constants
-define('HAPPY_BLUEPRINT_EXPORTER_VERSION', '1.0.0');
-define('HAPPY_BLUEPRINT_EXPORTER_FILE', __FILE__);
-define('HAPPY_BLUEPRINT_EXPORTER_PATH', plugin_dir_path(__FILE__));
-define('HAPPY_BLUEPRINT_EXPORTER_URL', plugin_dir_url(__FILE__));
+define('WC_SUPPORT_HELPER_VERSION', '1.0.0');
+define('WC_SUPPORT_HELPER_FILE', __FILE__);
+define('WC_SUPPORT_HELPER_PATH', plugin_dir_path(__FILE__));
+define('WC_SUPPORT_HELPER_URL', plugin_dir_url(__FILE__));
 
 // Load Composer autoloader
-require_once HAPPY_BLUEPRINT_EXPORTER_PATH . 'vendor/autoload.php';
+require_once WC_SUPPORT_HELPER_PATH . 'vendor/autoload.php';
 
 /**
  * Main plugin class
  */
-class Happy_Blueprint_Exporter {
+class WC_Support_Helper {
     /**
-     * @var Private_Plugin_Exporter
+     * @var Module_Loader
      */
-    private $private_plugin_exporter;
+    private $module_loader;
 
     /**
      * Constructor
@@ -60,8 +60,7 @@ class Happy_Blueprint_Exporter {
      * Initialize components
      */
     private function init_components() {
-        $this->private_plugin_exporter = new Private_Plugin_Exporter();
-        $this->private_plugin_exporter->init();
+        $this->module_loader = new Module_Loader();
     }
 
     /**
@@ -72,7 +71,7 @@ class Happy_Blueprint_Exporter {
             add_action('admin_notices', function() {
                 ?>
                 <div class="error">
-                    <p><?php _e('Happy Blueprint Exporter requires WooCommerce to be installed and active.', 'happy-blueprint-exporter'); ?></p>
+                    <p><?php _e('WooCommerce Support Helper requires WooCommerce to be installed and active.', 'woocommerce-support-helper'); ?></p>
                 </div>
                 <?php
             });
@@ -88,7 +87,29 @@ class Happy_Blueprint_Exporter {
             \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
         }
     }
+
+    /**
+     * Get the module loader
+     *
+     * @return Module_Loader
+     */
+    public function get_module_loader() {
+        return $this->module_loader;
+    }
+
+    /**
+     * Get plugin information
+     *
+     * @return array
+     */
+    public function get_plugin_info() {
+        return array(
+            'name' => 'WooCommerce Support Helper',
+            'version' => WC_SUPPORT_HELPER_VERSION,
+            'modules' => $this->module_loader ? $this->module_loader->get_module_info() : array(),
+        );
+    }
 }
 
 // Initialize the plugin
-new Happy_Blueprint_Exporter(); 
+new WC_Support_Helper(); 
