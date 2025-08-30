@@ -35,7 +35,8 @@ class Module_Loader {
     /**
      * Load all available modules
      */
-    private function load_modules() {
+    public function load_modules() {
+
         // Load Blueprint Exporter module
         $this->load_blueprint_exporter_module();
         
@@ -49,23 +50,41 @@ class Module_Loader {
     /**
      * Load the Blueprint Exporter module
      */
-    private function load_blueprint_exporter_module() {
-        if (class_exists('\WooCommerceSupportHelper\BlueprintExporter\Blueprint_Exporter')) {
-            $blueprint_exporter = new \WooCommerceSupportHelper\BlueprintExporter\Blueprint_Exporter();
-            $this->modules['blueprint_exporter'] = $blueprint_exporter;
-            $this->module_info['blueprint_exporter'] = $blueprint_exporter->get_module_info();
-        }
+    public function load_blueprint_exporter_module() {
+
+
+            try {
+                $blueprint_exporter = new \WooCommerceSupportHelper\BlueprintExporter\Blueprint_Exporter();
+                $this->modules['blueprint_exporter'] = $blueprint_exporter;
+                $this->module_info['blueprint_exporter'] = $blueprint_exporter->get_module_info();
+            } catch (Exception $e) {
+                if (class_exists('\WooCommerceSupportHelper\Logger')) {
+                    \WooCommerceSupportHelper\Logger::debug('Error creating Blueprint Exporter instance', array(
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ));
+                }
+            }
     }
 
     /**
      * Load the Shipping Methods Exporter module
      */
     private function load_shipping_methods_exporter_module() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\Shipping_Methods_Exporter')) {
-            $shipping_methods_exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\Shipping_Methods_Exporter();
-            $this->modules['shipping_methods_exporter'] = $shipping_methods_exporter;
-            $this->module_info['shipping_methods_exporter'] = $shipping_methods_exporter->get_module_info();
-        }
+
+            try {
+                $shipping_methods_exporter = new \WooCommerceSupportHelper\Shipping_Methods_Exporter();
+                $this->modules['shipping_methods_exporter'] = $shipping_methods_exporter;
+                $this->module_info['shipping_methods_exporter'] = $shipping_methods_exporter->get_module_info();
+
+            } catch (Exception $e) {
+                if (class_exists('\WooCommerceSupportHelper\Logger')) {
+                    \WooCommerceSupportHelper\Logger::debug('Error creating Shipping Methods Exporter instance', array(
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ));
+                }
+            }
     }
 
     /**

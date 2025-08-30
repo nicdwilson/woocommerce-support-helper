@@ -40,27 +40,75 @@ class WC_Support_Helper {
      */
     private $module_loader;
 
+	/**
+	 * Order_Simulator The instance of Order_Generator
+	 *
+	 * @var    object
+	 * @access private
+	 * @since  1.0.0
+	 */
+	private static object $instance;
+
+	/**
+	 * Main Order_Generator Instance
+	 *
+	 * Ensures only one instance of Order_Generator is loaded or can be loaded.
+	 *
+	 * @return WC_Support_Helper instance
+	 * @since  1.0.0
+	 * @static
+	 */
+	public static function instance(): object {
+		if ( empty( self::$instance ) ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
     /**
      * Constructor
      */
     public function __construct() {
+        
         $this->init_hooks();
         $this->init_components();
+
     }
 
     /**
      * Initialize hooks
      */
-    private function init_hooks() {
+    public function init_hooks() {
         add_action('plugins_loaded', array($this, 'check_woocommerce'));
-        add_action('woocommerce_init', array($this, 'declare_hpos_compatibility'));
+        add_action('plugins_loaded', array($this, 'load_textdomain'));
+        add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
+
+
+
+
+    }
+
+    /**
+     * Load plugin text domain
+     */
+    public function load_textdomain() {
+        load_plugin_textdomain(
+            'woocommerce-support-helper',
+            false,
+            dirname(plugin_basename(__FILE__)) . '/languages/'
+        );
+
+
     }
 
     /**
      * Initialize components
      */
-    private function init_components() {
+    public function init_components() {
+
         $this->module_loader = new Module_Loader();
+
     }
 
     /**
@@ -71,7 +119,7 @@ class WC_Support_Helper {
             add_action('admin_notices', function() {
                 ?>
                 <div class="error">
-                    <p><?php _e('WooCommerce Support Helper requires WooCommerce to be installed and active.', 'woocommerce-support-helper'); ?></p>
+                    <p>WooCommerce Support Helper requires WooCommerce to be installed and active.</p>
                 </div>
                 <?php
             });
@@ -112,4 +160,4 @@ class WC_Support_Helper {
 }
 
 // Initialize the plugin
-new WC_Support_Helper(); 
+add_action( 'init', array( '\WooCommerceSupportHelper\WC_Support_Helper', 'instance') );

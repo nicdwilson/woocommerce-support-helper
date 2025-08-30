@@ -1,88 +1,41 @@
-# Shipping Methods Exporter Module
+# Shipping Methods Exporter
 
-This module provides comprehensive export functionality for various WooCommerce shipping plugins through the WooCommerce Support Helper plugin.
+This module provides functionality to export shipping method configurations for WooCommerce Blueprint exports.
 
-## Purpose
+## Structure
 
-The Shipping Methods Exporter module allows users to export shipping method configurations and settings from supported WooCommerce shipping plugins, making them available for import through the Blueprint system or other export mechanisms.
+- `class-shipping-methods-exporter.php` - Main coordinator class that manages all shipping exporters
+- `woocommerce-shipping-australia-post/` - Australia Post shipping method exporter
+- `woocommerce-shipping-fedex/` - FedEx shipping method exporter (placeholder)
+- `woocommerce-shipping-royalmail/` - Royal Mail shipping method exporter (placeholder)
+- `woocommerce-shipping-ups/` - UPS shipping method exporter (placeholder)
+- `woocommerce-shipping-usps/` - USPS shipping method exporter (placeholder)
+- `woocommerce-table-rate-shipping/` - Table Rate Shipping exporter (placeholder)
 
-## Supported Shipping Plugins
+## How It Works
 
-- **Australia Post** (`woocommerce-shipping-australia-post`)
-- **FedEx** (`woocommerce-shipping-fedex`)
-- **Royal Mail** (`woocommerce-shipping-royalmail`)
-- **UPS** (`woocommerce-shipping-ups`)
-- **USPS** (`woocommerce-shipping-usps`)
-- **Table Rate Shipping** (`woocommerce-table-rate-shipping`)
+Each shipping method exporter is completely self-contained and implements the necessary methods:
 
-## Architecture
+- `is_plugin_active()` - Checks if the shipping plugin is active
+- `get_site_options()` - Returns site options for Blueprint export
+- `get_shipping_zone_configurations()` - Returns shipping zone configurations
 
-### Main Module Class
-- **`class-shipping-methods-exporter.php`**: Coordinates all shipping exporters and integrates with Blueprint
+The main coordinator class:
+1. Loads individual exporters
+2. Registers with the WooCommerce Blueprint system
+3. Collects data from all exporters during export
 
-### Abstract Base Class
-- **`class-abstract-shipping-exporter.php`**: Defines common interface and methods for all shipping exporters
+## Adding New Exporters
 
-### Individual Exporters
-Each supported shipping plugin has its own exporter class in a dedicated subfolder:
-- `woocommerce-shipping-australia-post/`
-- `woocommerce-shipping-fedex/`
-- `woocommerce-shipping-royalmail/`
-- `woocommerce-shipping-ups/`
-- `woocommerce-shipping-usps/`
-- `woocommerce-table-rate-shipping/`
+To add a new shipping method exporter:
 
-## Features
+1. Create a new directory under `shipping-methods-exporter/`
+2. Create a class that implements the required methods
+3. Add the loading logic to `Shipping_Methods_Exporter::init_shipping_exporters()`
 
-- **Automatic Plugin Detection**: Only loads exporters for active shipping plugins
-- **Blueprint Integration**: Seamlessly integrates with WooCommerce Blueprint export system
-- **Data Sanitization**: Automatically removes sensitive information like API keys
-- **Shipping Zone Support**: Exports shipping zone-specific configurations
-- **Extensible Design**: Easy to add new shipping plugin support
+## Blueprint Integration
 
-## Integration Points
-
-### Blueprint System
-- Registers shipping exporters with Blueprint
-- Provides shipping methods for export selection
-- Handles shipping data export during Blueprint generation
-
-### WooCommerce Admin
-- Integrates with WooCommerce admin settings
-- Adds shipping methods to Blueprint configuration
-- Provides user interface for export selection
-
-## Data Export
-
-Each exporter provides:
-- Plugin information and metadata
-- Configuration settings (sanitized)
-- Shipping zone configurations
-- API settings (without sensitive data)
-- Export metadata (timestamp, version)
-
-## Security Features
-
-- **Automatic Sanitization**: Removes sensitive data before export
-- **Configurable Filtering**: Easy to customize what data is exported
-- **Audit Trail**: Logs export activities for debugging
-
-## Usage
-
-The module is automatically loaded by the main plugin and integrates with WooCommerce Blueprint exports. No additional configuration is required.
-
-## Extending
-
-To add support for a new shipping plugin:
-
-1. Create a new subfolder in `includes/shipping-methods-exporter/`
-2. Create an exporter class extending `Abstract_Shipping_Exporter`
-3. Implement the required abstract methods
-4. Register the exporter in the main module class
-
-## Dependencies
-
-- WooCommerce 8.0+
-- WordPress 6.0+
-- PHP 7.4+
-- Supported shipping plugins (optional)
+This module integrates with WooCommerce Blueprint by:
+- Implementing the `StepExporter` interface
+- Returning `SetSiteOptions` steps with shipping configuration data
+- Hooking into the `wooblueprint_exporters` filter

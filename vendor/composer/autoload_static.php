@@ -10,12 +10,13 @@ class ComposerStaticInit4b7a21fc1814f7aa75903bee8d76e645
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'WooCommerceSupportHelper\\BlueprintExporter\\Abstract_Exporter' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-abstract-exporter.php',
         'WooCommerceSupportHelper\\BlueprintExporter\\Blueprint_Exporter' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-blueprint-exporter.php',
+        'WooCommerceSupportHelper\\BlueprintExporter\\Custom_Export_Schema' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-custom-export-schema.php',
+        'WooCommerceSupportHelper\\BlueprintExporter\\Custom_Rest_Api' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-custom-rest-api.php',
         'WooCommerceSupportHelper\\BlueprintExporter\\Private_Plugin_Exporter' => __DIR__ . '/../..' . '/includes/blueprint-exporter/class-private-plugin-exporter.php',
         'WooCommerceSupportHelper\\Logger' => __DIR__ . '/../..' . '/includes/class-logger.php',
         'WooCommerceSupportHelper\\Module_Loader' => __DIR__ . '/../..' . '/includes/class-module-loader.php',
-        'WooCommerceSupportHelper\\ShippingMethodsExporter\\Abstract_Shipping_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-abstract-shipping-exporter.php',
-        'WooCommerceSupportHelper\\ShippingMethodsExporter\\AustraliaPost\\Australia_Post_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-australia-post-exporter.php',
-        'WooCommerceSupportHelper\\ShippingMethodsExporter\\Shipping_Methods_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
+        'WooCommerceSupportHelper\\Shipping_Methods_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
+        'WooCommerceSupportHelper\\WooCommerce_Shipping_Australia_Post' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-woocommerce-shipping-australia-post.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

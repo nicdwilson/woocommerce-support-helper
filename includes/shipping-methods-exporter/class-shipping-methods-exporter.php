@@ -1,10 +1,10 @@
 <?php
-namespace WooCommerceSupportHelper\ShippingMethodsExporter;
+namespace WooCommerceSupportHelper;
 
 /**
  * Main Shipping Methods Exporter module class
  *
- * @package WooCommerceSupportHelper\ShippingMethodsExporter
+ * @package WooCommerceSupportHelper
  */
 
 if (!defined('ABSPATH')) {
@@ -38,142 +38,218 @@ class Shipping_Methods_Exporter {
     public function __construct() {
         $this->init_shipping_exporters();
         $this->init_hooks();
+        
+        // Exporters now self-register through the autoloader
     }
+    
 
     /**
      * Initialize all shipping exporters
      */
-    private function init_shipping_exporters() {
-        // Load individual shipping method exporters
-        $this->load_australia_post_exporter();
-        $this->load_fedex_exporter();
-        $this->load_royal_mail_exporter();
-        $this->load_ups_exporter();
-        $this->load_usps_exporter();
-        $this->load_table_rate_shipping_exporter();
+    public function init_shipping_exporters() {
+        // Force include our exporter files to ensure they're loaded
+        // This bypasses autoloader issues and ensures self-registration code runs
+        $exporter_path = __DIR__ . '/woocommerce-shipping-australia-post/class-woocommerce-shipping-australia-post.php';
+        
+        if (file_exists($exporter_path)) {
+            Logger::info('🔍 Australia Post exporter file found, attempting to include', array(
+                'path' => $exporter_path,
+                'file_size' => filesize($exporter_path),
+                'class_exists_before' => class_exists('\WooCommerceSupportHelper\WooCommerce_Shipping_Australia_Post')
+            ));
+            
+            try {
+               // require_once $exporter_path;
+	            require_once( $exporter_path );
+                Logger::info('✅ Australia Post exporter file successfully included', array(
+                    'path' => $exporter_path,
+                    'class_exists_after' => class_exists('\WooCommerceSupportHelper\WooCommerce_Shipping_Australia_Post')
+                ));
+            } catch (Exception $e) {
+                Logger::error('❌ Error including Australia Post exporter file', array(
+                    'path' => $exporter_path,
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ));
+            }
+        }
+        
+        // TODO: Add other exporters here when implemented
+        // $this->load_fedex_exporter();
+        // $this->load_royal_mail_exporter();
+        // $this->load_ups_exporter();
+        // $this->load_usps_exporter();
+        // $this->load_table_rate_shipping_exporter();
     }
 
     /**
      * Initialize WordPress and WooCommerce hooks
      */
-    private function init_hooks() {
-        // Hook into WooCommerce Blueprint exporters
-        add_filter('wooblueprint_exporters', array($this, 'register_shipping_exporters'));
-        
-        // Hook into WooCommerce admin settings for shipping
-        add_filter('woocommerce_admin_shared_settings', array($this, 'modify_shipping_settings'), 30);
-        
-        // Add shipping methods to Blueprint export
-        add_action('wooblueprint_export_shipping_methods', array($this, 'export_shipping_methods'));
+    public function init_hooks() {
+
+
+       
+            add_filter('woocommerce_admin_shared_settings', array($this, 'add_shipping_exporter_to_ui'), 25);
+
+			add_filter('wooblueprint_exporters', array( $this, 'add_shipping_exporters' ), 10 );
+            
     }
 
-    /**
-     * Load Australia Post exporter
-     */
-    private function load_australia_post_exporter() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\AustraliaPost\Australia_Post_Exporter')) {
-            $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\AustraliaPost\Australia_Post_Exporter();
-            $this->shipping_exporters['australia_post'] = $exporter;
-        }
-    }
 
+	public function add_shipping_exporters( $exporters ){
+			$exporters[] = new WooCommerce_Shipping_Australia_Post();
+			return $exporters;
+	}
+    
     /**
-     * Load FedEx exporter
-     */
-    private function load_fedex_exporter() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\FedEx\FedEx_Exporter')) {
-            $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\FedEx\FedEx_Exporter();
-            $this->shipping_exporters['fedex'] = $exporter;
-        }
-    }
-
-    /**
-     * Load Royal Mail exporter
-     */
-    private function load_royal_mail_exporter() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\RoyalMail\Royal_Mail_Exporter')) {
-            $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\RoyalMail\Royal_Mail_Exporter();
-            $this->shipping_exporters['royal_mail'] = $exporter;
-        }
-    }
-
-    /**
-     * Load UPS exporter
-     */
-    private function load_ups_exporter() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\UPS\UPS_Exporter')) {
-            $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\UPS\UPS_Exporter();
-            $this->shipping_exporters['ups'] = $exporter;
-        }
-    }
-
-    /**
-     * Load USPS exporter
-     */
-    private function load_usps_exporter() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\USPS\USPS_Exporter')) {
-            $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\USPS\USPS_Exporter();
-            $this->shipping_exporters['usps'] = $exporter;
-        }
-    }
-
-    /**
-     * Load Table Rate Shipping exporter
-     */
-    private function load_table_rate_shipping_exporter() {
-        if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\TableRateShipping\Table_Rate_Shipping_Exporter')) {
-            $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\TableRateShipping\Table_Rate_Shipping_Exporter();
-            $this->shipping_exporters['table_rate_shipping'] = $exporter;
-        }
-    }
-
-    /**
-     * Register shipping exporters with Blueprint
+     * Register shipping exporters with the Blueprint system
      *
      * @param array $exporters
      * @return array
      */
     public function register_shipping_exporters($exporters) {
-        foreach ($this->shipping_exporters as $exporter) {
-            if (method_exists($exporter, 'register_with_blueprint')) {
-                $exporters = $exporter->register_with_blueprint($exporters);
-            }
-        }
+        // Exporters are now self-registering through the autoloader
+        // This method is kept for backward compatibility but no longer needed
+        Logger::info('🚀 register_shipping_exporters called: Exporters are now self-registering via autoloader');
         return $exporters;
     }
 
     /**
-     * Modify shipping settings in WooCommerce admin
+     * Export shipping method site options for Blueprint
+     * This method is called by the main plugin to hook into the Blueprint export process
      *
-     * @param array $settings
+     * @param array $site_options
      * @return array
      */
-    public function modify_shipping_settings($settings) {
-        // Add shipping methods to Blueprint settings if available
-        if (isset($settings['blueprint_step_groups'])) {
-            foreach ($settings['blueprint_step_groups'] as &$group) {
-                if ($group['id'] === 'shipping') {
-                    $group['items'] = $this->get_shipping_methods_for_export();
-                    break;
-                }
+    public function export_shipping_method_site_options($site_options) {
+        Logger::info('MAIN: export_shipping_method_site_options called', array(
+            'input_site_options_count' => count($site_options),
+            'input_site_options_keys' => array_keys($site_options),
+            'available_exporters' => array_keys($this->shipping_exporters),
+            'backtrace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3),
+        ));
+        
+        // Check if we have any exporters available
+        if (empty($this->shipping_exporters)) {
+            Logger::warning('No shipping exporters available for site options export');
+            return $site_options;
+        }
+        
+        $shipping_method_options = array();
+        foreach ($this->shipping_exporters as $exporter_key => $exporter) {
+            Logger::debug('Processing exporter', array(
+                'exporter_key' => $exporter_key,
+                'exporter_class' => get_class($exporter),
+                'has_get_site_options' => method_exists($exporter, 'get_site_options'),
+                'exporter_methods' => get_class_methods($exporter),
+            ));
+            
+            if (method_exists($exporter, 'get_site_options')) {
+                $exporter_options = $exporter->get_site_options();
+                Logger::debug('Exporter returned options', array(
+                    'exporter_key' => $exporter_key,
+                    'options_count' => count($exporter_options),
+                    'option_keys' => array_keys($exporter_options),
+                    'exporter_options' => $exporter_options,
+                ));
+                $shipping_method_options = array_merge($shipping_method_options, $exporter_options);
+            } else {
+                Logger::debug('Exporter missing get_site_options method', array(
+                    'exporter_key' => $exporter_key,
+                    'exporter_class' => get_class($exporter),
+                ));
             }
         }
-        return $settings;
+        
+        Logger::debug('export_shipping_method_site_options completed', array(
+            'shipping_method_options_count' => count($shipping_method_options),
+            'shipping_method_options_keys' => array_keys($shipping_method_options),
+            'final_site_options_count' => count($site_options) + count($shipping_method_options),
+            'final_site_options_keys' => array_keys(array_merge($site_options, $shipping_method_options)),
+        ));
+        
+        $final_options = array_merge($site_options, $shipping_method_options);
+        
+        Logger::info('Shipping method site options export completed', array(
+            'original_count' => count($site_options),
+            'shipping_added_count' => count($shipping_method_options),
+            'final_count' => count($final_options),
+            'shipping_keys_added' => array_keys($shipping_method_options),
+        ));
+        
+        return $final_options;
     }
 
     /**
-     * Export shipping methods data
+     * Export shipping zone configurations for Blueprint
+     *
+     * @param array $shipping_zones
+     * @return array
      */
-    public function export_shipping_methods() {
-        $shipping_data = array();
+    public function export_shipping_zone_configurations($shipping_zones) {
+        Logger::debug('export_shipping_zone_configurations called', array(
+            'input_shipping_zones_count' => count($shipping_zones),
+            'available_exporters' => array_keys($this->shipping_exporters),
+        ));
         
-        foreach ($this->shipping_exporters as $key => $exporter) {
-            if (method_exists($exporter, 'export_data')) {
-                $shipping_data[$key] = $exporter->export_data();
+        // Check if we have any exporters available
+        if (empty($this->shipping_exporters)) {
+            Logger::warning('No shipping exporters available for zone configurations export');
+            return $shipping_zones;
+        }
+        
+        $shipping_zone_options = array();
+        foreach ($this->shipping_exporters as $exporter_key => $exporter) {
+            Logger::debug('Processing exporter for zone configs', array(
+                'exporter_key' => $exporter_key,
+                'exporter_class' => get_class($exporter),
+                'has_get_shipping_zone_configurations' => method_exists($exporter, 'get_shipping_zone_configurations'),
+            ));
+            
+            if (method_exists($exporter, 'get_shipping_zone_configurations')) {
+                $exporter_zones = $exporter->get_shipping_zone_configurations();
+                Logger::debug('Exporter returned zone configs', array(
+                    'exporter_key' => $exporter_key,
+                    'zones_count' => count($exporter_zones),
+                ));
+                $shipping_zone_options = array_merge($shipping_zone_options, $exporter_zones);
+            } else {
+                Logger::debug('Exporter missing get_shipping_zone_configurations method', array(
+                    'exporter_key' => $exporter_key,
+                    'exporter_class' => get_class($exporter),
+                ));
             }
         }
         
-        return $shipping_data;
+        Logger::debug('export_shipping_zone_configurations completed', array(
+            'shipping_zone_options_count' => count($shipping_zone_options),
+            'final_shipping_zones_count' => count($shipping_zones) + count($shipping_zone_options),
+        ));
+        
+        return array_merge($shipping_zones, $shipping_zone_options);
+    }
+
+    /**
+     * Called when Blueprint export starts
+     */
+    public function on_blueprint_export() {
+        Logger::debug('wooblueprint_export hook called - starting shipping methods export');
+        
+        // Check if we have any exporters available
+        if (empty($this->shipping_exporters)) {
+            Logger::warning('No shipping exporters available for Blueprint export');
+            return;
+        }
+        
+        // Try to export shipping methods data
+        $site_options = $this->export_shipping_method_site_options(array());
+        $shipping_zones = $this->export_shipping_zone_configurations(array());
+        
+        Logger::debug('Shipping methods export completed during blueprint export', array(
+            'site_options_count' => count($site_options),
+            'shipping_zones_count' => count($shipping_zones),
+        ));
     }
 
     /**
@@ -181,20 +257,52 @@ class Shipping_Methods_Exporter {
      *
      * @return array
      */
-    private function get_shipping_methods_for_export() {
+    public function get_shipping_methods_for_export() {
         $methods = array();
         
+        // Check if we have any exporters available
+        if (empty($this->shipping_exporters)) {
+            Logger::warning('No shipping exporters available for export UI');
+            return $methods;
+        }
+        
+        // Add the main shipping methods exporter as a general option
+        $methods[] = array(
+            'id' => 'australia_post_shipping',
+            'label' => __('Shipping Methods', 'woocommerce'),
+            'description' => __('Includes all shipping method settings and configurations.', 'woocommerce'),
+            'checked' => true,
+        );
+        
+        // Add individual shipping method exporters
         foreach ($this->shipping_exporters as $key => $exporter) {
             if (method_exists($exporter, 'get_export_info')) {
                 $info = $exporter->get_export_info();
                 if ($info) {
                     $methods[] = $info;
                 }
+            } else {
+                // Fallback for exporters without get_export_info
+                $methods[] = array(
+                    'id' => $key . '_shipping',
+                    'label' => ucfirst(str_replace('-', ' ', $key)),
+                    'description' => 'Shipping method settings',
+                    'checked' => true,
+                );
             }
         }
         
+        Logger::debug('Shipping methods for export UI prepared', array(
+            'methods_count' => count($methods),
+            'methods' => $methods,
+        ));
+        
         return $methods;
     }
+
+
+
+
 
     /**
      * Get all shipping exporters
@@ -204,27 +312,7 @@ class Shipping_Methods_Exporter {
     public function get_shipping_exporters() {
         return $this->shipping_exporters;
     }
-
-    /**
-     * Get a specific shipping exporter by name
-     *
-     * @param string $name
-     * @return object|null
-     */
-    public function get_shipping_exporter($name) {
-        return isset($this->shipping_exporters[$name]) ? $this->shipping_exporters[$name] : null;
-    }
-
-    /**
-     * Check if a shipping method is supported
-     *
-     * @param string $method_name
-     * @return bool
-     */
-    public function is_shipping_method_supported($method_name) {
-        return isset($this->supported_plugins[$method_name]);
-    }
-
+    
     /**
      * Get supported shipping plugins
      *
@@ -233,7 +321,7 @@ class Shipping_Methods_Exporter {
     public function get_supported_plugins() {
         return $this->supported_plugins;
     }
-
+    
     /**
      * Get module information
      *
@@ -247,10 +335,132 @@ class Shipping_Methods_Exporter {
             'supported_plugins' => $this->supported_plugins,
             'exporters' => array_map(function($exporter) {
                 return array(
-                    'name' => method_exists($exporter, 'get_name') ? $exporter->get_name() : 'Unknown',
-                    'description' => method_exists($exporter, 'get_description') ? $exporter->get_description() : '',
+                    'name' => 'Shipping Exporter',
+                    'description' => 'Exports shipping method settings',
                 );
             }, $this->shipping_exporters),
         );
     }
+    
+    /**
+     * Add the shipping exporter to the WooCommerce admin shared settings
+     * This makes it visible in the Blueprint UI's "Add New Step" dropdown.
+     *
+     * @param array $settings
+     * @return array
+     */
+    public function add_shipping_exporter_to_ui($settings) {
+        // Get available shipping exporters
+        $shipping_items = array();
+         
+        $shipping_items[] = array(
+                'id'      => 'australia_post_shipping',
+                'label'   => 'Australia Post',
+                'checked' => true,
+            );
+        
+        // Only add the group if we have shipping items
+        if (!empty($shipping_items)) {
+            $settings['blueprint_step_groups'][] = array(
+                'id'          => 'shipping_plugins',
+                'description' => __( 'Includes shipping plugin settings', 'woocommerce' ),
+                'label'       => __( 'Shipping plugin settings', 'woocommerce' ),
+                'icon'        => 'layout',
+                'items'       => $shipping_items,
+            );
+        }
+
+        return $settings;
+    }
+
+
+
+    
+
+    /**
+     * Register Blueprint hooks after WooCommerce is fully loaded
+     */
+    public function register_blueprint_hooks() {
+        Logger::info('🚀🚀🚀 register_blueprint_hooks called - Registering Blueprint hooks');
+        
+        // Debug: Check what WooCommerce Blueprint classes are available
+        Logger::info('🔍 DEBUG: Checking available WooCommerce Blueprint classes', array(
+            'class_exists_StepExporter' => class_exists('\Automattic\WooCommerce\Blueprint\Exporters\StepExporter'),
+            'class_exists_ExportSchema' => class_exists('\Automattic\WooCommerce\Blueprint\ExportSchema'),
+            'class_exists_UseWPFunctions' => class_exists('\Automattic\WooCommerce\Blueprint\UseWPFunctions'),
+            'class_exists_SetSiteOptions' => class_exists('\Automattic\WooCommerce\Blueprint\Steps\SetSiteOptions'),
+            'class_exists_Blueprint' => class_exists('\Automattic\WooCommerce\Blueprint\Blueprint'),
+            'woocommerce_loaded' => did_action('woocommerce_loaded'),
+            'plugins_loaded_priority' => current_filter(),
+        ));
+        
+        // Also check for any classes with "Blueprint" in the name
+        $blueprint_classes = array();
+        foreach (get_declared_classes() as $class) {
+            if (strpos($class, 'Blueprint') !== false) {
+                $blueprint_classes[] = $class;
+            }
+        }
+        Logger::info('🔍 DEBUG: Found classes with "Blueprint" in name', array(
+            'blueprint_classes' => $blueprint_classes,
+        ));
+        
+        // Check if WooCommerce Blueprint files exist
+        $wc_plugin_dir = WP_PLUGIN_DIR . '/woocommerce';
+        $blueprint_files = array(
+            'packages/blueprint/src/Exporters/StepExporter.php',
+            'packages/blueprint/src/ExportSchema.php',
+            'packages/blueprint/src/UseWPFunctions.php',
+            'packages/blueprint/src/Steps/SetSiteOptions.php',
+        );
+        
+        $existing_files = array();
+        foreach ($blueprint_files as $file) {
+            $full_path = $wc_plugin_dir . '/' . $file;
+            $existing_files[$file] = file_exists($full_path);
+        }
+        
+        Logger::info('🔍 DEBUG: WooCommerce Blueprint files check', array(
+            'wc_plugin_dir' => $wc_plugin_dir,
+            'existing_files' => $existing_files,
+        ));
+        
+        // Try to manually include and check the StepExporter file
+        if (file_exists($wc_plugin_dir . '/packages/blueprint/src/Exporters/StepExporter.php')) {
+            Logger::info('🔍 DEBUG: StepExporter file exists, checking its contents');
+            $file_contents = file_get_contents($wc_plugin_dir . '/packages/blueprint/src/Exporters/StepExporter.php');
+            if ($file_contents) {
+                // Look for namespace declaration
+                if (preg_match('/namespace\s+([^;]+);/', $file_contents, $matches)) {
+                    Logger::info('🔍 DEBUG: Found namespace in StepExporter file', array(
+                        'namespace' => $matches[1],
+                        'expected_namespace' => 'Automattic\WooCommerce\Blueprint\Exporters',
+                    ));
+                }
+            }
+        }
+        
+        // NOTE: Hook registration is now done directly in the constructor for immediate availability
+        // This method is kept for backward compatibility but no longer registers hooks
+        Logger::info('🚀🚀🚀 register_blueprint_hooks called - Hooks are now registered directly in constructor');
+        
+        // Still hook into the export process directly for additional functionality
+        if (class_exists('\Automattic\WooCommerce\Blueprint\Exporters\StepExporter')) {
+            add_action('wooblueprint_export', array($this, 'on_blueprint_export'));
+            Logger::info('🚀🚀🚀 SUCCESS: wooblueprint_export action hook registered');
+        } else {
+            Logger::warning('❌❌❌ FAILED: StepExporter interface not found - cannot register wooblueprint_export action');
+        }
+        
+        Logger::info('🚀🚀🚀 register_blueprint_hooks completed');
+    }
+    
+
+
+
 }
+
+
+
+
+

@@ -61,6 +61,24 @@ class Logger {
     }
 
     /**
+     * Log a warning message.
+     *
+     * @param string $message
+     * @param array $context
+     */
+    public static function warning($message, $context = array()) {
+        $logger = self::get_logger();
+        
+        // Check if the logger supports warning method
+        if (method_exists($logger, 'warning')) {
+            $logger->warning($message, array_merge($context, array('source' => self::SOURCE)));
+        } else {
+            // Fallback to info if warning is not supported
+            $logger->info($message, array_merge($context, array('source' => self::SOURCE, 'level' => 'warning')));
+        }
+    }
+
+    /**
      * Log an error message.
      *
      * @param string $message
@@ -68,5 +86,102 @@ class Logger {
      */
     public static function error($message, $context = array()) {
         self::get_logger()->error($message, array_merge($context, array('source' => self::SOURCE)));
+    }
+    
+    /**
+     * Check if we're on a Blueprint-related page
+     *
+     * @return bool
+     */
+    private static function is_blueprint_page() {
+        
+        
+        // Check if we're on the Blueprint page - simplified approach
+        if (isset($_GET['page']) && $_GET['page'] === 'wc-admin' && 
+            isset($_GET['path']) && strpos($_GET['path'], 'blueprint') !== false) {
+            return true;
+        }
+        
+        // Check if we're in a Blueprint AJAX request
+        if (\wp_doing_ajax() && isset($_POST['action']) && strpos($_POST['action'], 'blueprint') !== false) {
+            return true;
+        }
+        
+        // Check if we're in a Blueprint REST API request
+        if (defined('REST_REQUEST') && REST_REQUEST) {
+            $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+            if (strpos($request_uri, 'wc-admin/blueprint') !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Log an info message only on Blueprint pages.
+     *
+     * @param string $message
+     * @param array $context
+     */
+    public static function blueprint_info($message, $context = array()) {
+        if (self::is_blueprint_page()) {
+            self::info($message, $context);
+        }
+    }
+    
+    /**
+     * Log a debug message only on Blueprint pages.
+     *
+     * @param string $message
+     * @param array $context
+     */
+    public static function blueprint_debug($message, $context = array()) {
+        if (self::is_blueprint_page()) {
+            self::debug($message, $context);
+        }
+    }
+    
+    /**
+     * Log a warning message only on Blueprint pages.
+     *
+     * @param string $message
+     * @param array $context
+     */
+    public static function blueprint_warning($message, $context = array()) {
+        if (self::is_blueprint_page()) {
+            self::warning($message, $context);
+        }
+    }
+    
+    /**
+     * Log an error message only on Blueprint pages.
+     *
+     * @param string $message
+     * @param array $context
+     */
+    public static function blueprint_error($message, $context = array()) {
+        if (self::is_blueprint_page()) {
+            self::error($message, $context);
+        }
+    }
+    
+    /**
+     * Log a message only on Blueprint pages with custom level.
+     *
+     * @param string $level
+     * @param string $message
+     * @param array $context
+     */
+    public static function blueprint_log($level, $message, $context = array()) {
+        if (self::is_blueprint_page()) {
+            $logger = self::get_logger();
+            if (method_exists($logger, $level)) {
+                $logger->$level($message, array_merge($context, array('source' => self::SOURCE)));
+            } else {
+                // Fallback to info if level is not supported
+                $logger->info($message, array_merge($context, array('source' => self::SOURCE, 'level' => $level)));
+            }
+        }
     }
 } 

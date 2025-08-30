@@ -38,7 +38,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
      * @return string
      */
     public function get_description() {
-        return __('Enables export of private plugin settings in WooCommerce Blueprint.', 'woocommerce-support-helper');
+        return 'Enables export of private plugin settings in WooCommerce Blueprint.';
     }
 
     /**
@@ -262,7 +262,6 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
         
         // Only run on the Blueprint settings page where blueprint_step_groups is available
         if (!isset($settings['blueprint_step_groups'])) {
-            \WooCommerceSupportHelper\Logger::debug('No blueprint_step_groups found in settings - not on Blueprint page');
             return $settings;
         }
 
