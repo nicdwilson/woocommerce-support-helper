@@ -29,19 +29,16 @@ try {
     }
     
     // Test Shipping_Methods_Exporter class
-    $shipping_methods_exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\Shipping_Methods_Exporter();
+    $shipping_methods_exporter = new \WooCommerceSupportHelper\Shipping_Methods_Exporter();
     echo "✓ Shipping_Methods_Exporter class instantiated successfully\n";
     
-    // Test Abstract_Shipping_Exporter class (don't instantiate since it's abstract)
-    if (class_exists('\WooCommerceSupportHelper\ShippingMethodsExporter\Abstract_Shipping_Exporter')) {
-        echo "✓ Abstract_Shipping_Exporter class exists (abstract class)\n";
-    } else {
-        echo "✗ Abstract_Shipping_Exporter class not found\n";
-    }
+    // Test WooCommerce_Shipping_Australia_Post class
+    $australia_post_exporter = new \WooCommerceSupportHelper\WooCommerce_Shipping_Australia_Post();
+    echo "✓ WooCommerce_Shipping_Australia_Post class instantiated successfully\n";
     
-    // Test Australia_Post_Exporter class
-    $australia_post_exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\AustraliaPost\Australia_Post_Exporter();
-    echo "✓ Australia_Post_Exporter class instantiated successfully\n";
+    // Test WooCommerce_Shipping_Usps class
+    $usps_exporter = new \WooCommerceSupportHelper\WooCommerce_Shipping_Usps();
+    echo "✓ WooCommerce_Shipping_Usps class instantiated successfully\n";
     
     echo "✓ All classes working correctly!\n";
     

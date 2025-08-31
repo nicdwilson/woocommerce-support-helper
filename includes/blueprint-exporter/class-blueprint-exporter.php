@@ -49,7 +49,7 @@ class Blueprint_Exporter {
      */
     private function init_hooks() {
         // Hook into WooCommerce Blueprint exporters
-        add_filter('wooblueprint_exporters', array($this, 'modify_plugin_exporter'));
+       add_filter('wooblueprint_exporters', array($this, 'modify_plugin_exporter'));
         
         // Hook into WooCommerce admin settings
         add_filter('woocommerce_admin_shared_settings', array($this, 'modify_plugin_list'), 20);
@@ -184,15 +184,6 @@ class Blueprint_Exporter {
      * @return \WP_HTTP_Response The response object.
      */
     public function handle_export_request($request) {
-        \WooCommerceSupportHelper\Logger::info('🚀 Custom Blueprint export handler called', array(
-            'request_params' => $request->get_params(),
-            'request_params_type' => gettype($request->get_params()),
-            'request_params_keys' => array_keys($request->get_params()),
-            'steps_param_raw' => $request->get_param('steps'),
-            'steps_param_type' => gettype($request->get_param('steps')),
-            'user_id' => get_current_user_id(),
-            'user_can_manage_woocommerce' => current_user_can('manage_woocommerce'),
-        ));
         
         $payload = $request->get_param( 'steps' );
         $steps   = $this->steps_payload_to_blueprint_steps( $payload );
@@ -209,7 +200,6 @@ class Blueprint_Exporter {
 
         // Use our custom ExportSchema instead of the default one
         if (class_exists('\WooCommerceSupportHelper\BlueprintExporter\Custom_Export_Schema')) {
-            \WooCommerceSupportHelper\Logger::info('🚀 Using Custom_Export_Schema');
             $exporter = new Custom_Export_Schema();
         } else {
             \WooCommerceSupportHelper\Logger::warning('🚀 Custom_Export_Schema not available, falling back to WooCommerce ExportSchema');
@@ -245,41 +235,12 @@ class Blueprint_Exporter {
                 }
             );
         }
-
-        \WooCommerceSupportHelper\Logger::info('🚀 Starting export with exporter', array(
-            'exporter_class' => get_class($exporter),
-            'steps' => $steps,
-        ));
         
         $data = $exporter->export( $steps );
-
-        \WooCommerceSupportHelper\Logger::info('🚀 Export completed', array(
-            'data_keys' => array_keys($data),
-            'steps_count' => isset($data['steps']) ? count($data['steps']) : 0,
-            'exporter_class_used' => get_class($exporter),
-        ));
-        
-        // Debug: Log the structure of steps data
-        if (isset($data['steps']) && is_array($data['steps'])) {
-            \WooCommerceSupportHelper\Logger::info('🔍 Steps data structure', array(
-                'steps_count' => count($data['steps']),
-                'first_step_type' => isset($data['steps'][0]) ? gettype($data['steps'][0]) : 'none',
-                'first_step_class' => isset($data['steps'][0]) && is_object($data['steps'][0]) ? get_class($data['steps'][0]) : 'not_object',
-                'steps_sample' => array_slice($data['steps'], 0, 3), // First 3 steps for debugging
-            ));
-        }
 
         if ( is_wp_error( $data ) ) {
             return new \WP_REST_Response( $data, 400 );
         }
-
-        // Debug: Log what we're about to return
-        \WooCommerceSupportHelper\Logger::info('🔍 Final response data', array(
-            'data_type' => gettype($data),
-            'data_keys' => is_array($data) ? array_keys($data) : 'not_array',
-            'data_json' => json_encode($data),
-            'data_serialized' => serialize($data),
-        ));
         
         // Try to return the data in the same format as WooCommerce's original handler
         if (is_wp_error($data)) {
@@ -312,10 +273,6 @@ class Blueprint_Exporter {
         $blueprint_steps = array();
 
         if ( isset( $steps['settings'] ) && count( $steps['settings'] ) > 0 ) {
-            \WooCommerceSupportHelper\Logger::info('🔍 Found settings in payload', array(
-                'settings_count' => count($steps['settings']),
-                'settings_sample' => array_slice($steps['settings'], 0, 5),
-            ));
             $blueprint_steps = array_merge( $blueprint_steps, $steps['settings'] );
         }
 
@@ -328,17 +285,8 @@ class Blueprint_Exporter {
         }
 
         if ( isset( $steps['themes'] ) && count( $steps['themes'] ) > 0 ) {
-            \WooCommerceSupportHelper\Logger::info('🔍 Found themes in payload', array(
-                'themes_count' => count($steps['themes']),
-                'themes_sample' => array_slice($steps['themes'], 0, 5),
-            ));
             $blueprint_steps[] = 'installTheme';
         }
-
-        \WooCommerceSupportHelper\Logger::info('🔍 Steps conversion completed', array(
-            'output_steps' => $blueprint_steps,
-            'output_count' => count($blueprint_steps),
-        ));
 
         return $blueprint_steps;
     }

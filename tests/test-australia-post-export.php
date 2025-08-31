@@ -31,7 +31,7 @@ echo "Testing Australia Post exporter...\n\n";
 
 try {
     // Initialize the Australia Post exporter
-    $exporter = new \WooCommerceSupportHelper\ShippingMethodsExporter\AustraliaPost\Australia_Post_Exporter();
+    $exporter = new \WooCommerceSupportHelper\WooCommerce_Shipping_Australia_Post();
     
     echo "Exporter initialized successfully.\n";
     echo "Plugin active: " . ($exporter->is_plugin_active() ? 'Yes' : 'No') . "\n";

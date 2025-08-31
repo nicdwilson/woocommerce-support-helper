@@ -12,23 +12,23 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Australia Post Shipping Method Exporter
+ * USPS Shipping Method Exporter
  * 
- * Exports Australia Post shipping method settings for WooCommerce Blueprint
+ * Exports USPS shipping method settings for WooCommerce Blueprint
  * 
  * @package WooCommerceSupportHelper
  */
-class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
+class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
     
     /**
-     * Plugin slug for Australia Post shipping method
+     * Plugin slug for USPS shipping method
      */
-    const PLUGIN_SLUG = 'woocommerce-shipping-australia-post';
+    const PLUGIN_SLUG = 'woocommerce-shipping-usps';
     
     /**
-     * Method ID for Australia Post shipping method
+     * Method ID for USPS shipping method
      */
-    const METHOD_ID = 'australia_post';
+    const METHOD_ID = 'usps';
     
     /**
      * Get the step name for this exporter
@@ -45,21 +45,21 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
      * @return string
      */
     public function get_alias() {
-        return 'AustraliaPostOptions';
+        return 'UspsOptions';
     }
 
     /**
-     * Export Australia Post shipping method settings
+     * Export USPS shipping method settings
      *
      * @return Step
      */
     public function export(): Step {
-        Logger::info('🇦🇺 Australia Post Exporter: Starting real configuration export');
+        Logger::info('🇺🇸 USPS Exporter: Starting configuration export');
         
-        // Get all Australia Post site options
+        // Get all USPS site options
         $site_options = $this->get_site_options();
         
-        Logger::info('🇦🇺 Australia Post Exporter: Export completed', array(
+        Logger::info('🇺🇸 USPS Exporter: Export completed', array(
             'site_options_count' => count($site_options),
             'site_options_keys' => array_keys($site_options),
         ));
@@ -69,31 +69,31 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     }
 
     /**
-     * Get Australia Post site options for Blueprint export
+     * Get USPS site options for Blueprint export
      *
      * @return array
      */
     public function get_site_options() {
         $site_options = array();
         
-        // Get global Australia Post settings
-        $global_settings = get_option('woocommerce_australia_post_settings', array());
+        // Get global USPS settings
+        $global_settings = get_option('woocommerce_usps_settings', array());
         if (!empty($global_settings)) {
-            $site_options['woocommerce_australia_post_settings'] = $this->sanitize_settings($global_settings);
-            Logger::debug('🇦🇺 Found global Australia Post settings', array(
+            $site_options['woocommerce_usps_settings'] = $this->sanitize_settings($global_settings);
+            Logger::debug('🇺🇸 Found global USPS settings', array(
                 'settings_count' => count($global_settings),
                 'settings_keys' => array_keys($global_settings),
             ));
         }
         
         // Get per-method settings for each shipping zone
-        $shipping_zones = $this->get_shipping_zones_with_australia_post();
+        $shipping_zones = $this->get_shipping_zones_with_usps();
         foreach ($shipping_zones as $zone) {
             $method_settings = $this->get_method_settings_for_zone($zone);
             if (!empty($method_settings)) {
-                $option_name = 'woocommerce_australia_post_' . $zone['method_instance_id'] . '_settings';
+                $option_name = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
                 $site_options[$option_name] = $this->sanitize_settings($method_settings);
-                Logger::debug('🇦🇺 Found method settings for zone', array(
+                Logger::debug('🇺🇸 Found method settings for zone', array(
                     'zone_id' => $zone['zone_id'],
                     'zone_name' => $zone['zone_name'],
                     'method_instance_id' => $zone['method_instance_id'],
@@ -102,20 +102,28 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
             }
         }
         
+        // Add dummy data for testing if no real settings found
+        if (empty($site_options)) {
+            $site_options['woocommerce_usps_demo_settings'] = $this->get_demo_settings();
+            Logger::info('🇺🇸 No real USPS settings found, using demo data for testing', array(
+                'demo_settings_count' => count($site_options['woocommerce_usps_demo_settings']),
+            ));
+        }
+        
         return $site_options;
     }
 
     /**
-     * Get shipping zones that have Australia Post shipping method configured
+     * Get shipping zones that have USPS shipping method configured
      *
      * @return array
      */
-    public function get_shipping_zones_with_australia_post() {
-        $zones_with_australia_post = array();
+    public function get_shipping_zones_with_usps() {
+        $zones_with_usps = array();
         
         if (!class_exists('WC_Shipping_Zones')) {
-            Logger::warning('🇦🇺 WC_Shipping_Zones class not available');
-            return $zones_with_australia_post;
+            Logger::warning('🇺🇸 WC_Shipping_Zones class not available');
+            return $zones_with_usps;
         }
         
         $shipping_zones = \WC_Shipping_Zones::get_zones();
@@ -131,13 +139,13 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
             $methods = $zone->get_shipping_methods();
             foreach ($methods as $method) {
                 if ($method->id === self::METHOD_ID && $method->is_enabled()) {
-                    $zones_with_australia_post[] = array(
+                    $zones_with_usps[] = array(
                         'zone_id' => $zone->get_id(),
                         'zone_name' => $zone->get_zone_name(),
                         'method_instance_id' => $method->get_instance_id(),
                         'method_settings' => $method->get_instance_option(),
                     );
-                    Logger::debug('🇦🇺 Found Australia Post method in zone', array(
+                    Logger::debug('🇺🇸 Found USPS method in zone', array(
                         'zone_id' => $zone->get_id(),
                         'zone_name' => $zone->get_zone_name(),
                         'method_instance_id' => $method->get_instance_id(),
@@ -146,7 +154,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
             }
         }
         
-        return $zones_with_australia_post;
+        return $zones_with_usps;
     }
 
     /**
@@ -160,8 +168,50 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
             return array();
         }
         
-        $option_name = 'woocommerce_australia_post_' . $zone['method_instance_id'] . '_settings';
+        $option_name = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
         return get_option($option_name, array());
+    }
+
+    /**
+     * Get demo settings for testing when no real USPS configuration exists
+     *
+     * @return array
+     */
+    private function get_demo_settings() {
+        return array(
+            'enabled' => 'yes',
+            'title' => 'USPS Shipping',
+            'user_id' => '***CONFIGURED***',
+            'origin' => '12345',
+            'packaging' => 'package',
+            'offer_rates' => 'all',
+            'fallback' => 'no',
+            'debug_mode' => 'no',
+            'domestic_services' => array(
+                'PRIORITY' => 'Priority Mail',
+                'FIRST CLASS' => 'First-Class Mail',
+                'MEDIA' => 'Media Mail',
+                'LIBRARY' => 'Library Mail'
+            ),
+            'international_services' => array(
+                'GXG' => 'Global Express Guaranteed',
+                'PRIORITY' => 'Priority Mail International',
+                'FIRST CLASS' => 'First-Class Mail International'
+            ),
+            'box_weights' => array(
+                '0.5' => '0.5 lbs',
+                '1.0' => '1.0 lbs',
+                '2.0' => '2.0 lbs',
+                '5.0' => '5.0 lbs'
+            ),
+            'handling_fee' => '2.50',
+            'min_amount' => '0.00',
+            'max_amount' => '1000.00',
+            'tax_status' => 'taxable',
+            'cost' => '0.00',
+            'free_shipping' => 'no',
+            'free_shipping_min_amount' => '100.00'
+        );
     }
 
     /**
@@ -179,13 +229,14 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
         
         // List of sensitive keys to sanitize
         $sensitive_keys = array(
-            'api_key',
-            'api_password',
+            'user_id',
             'password',
             'secret',
             'token',
             'auth_key',
             'private_key',
+            'api_key',
+            'api_secret'
         );
         
         // Sanitize sensitive keys
@@ -213,8 +264,8 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     public function get_shipping_zone_configurations() {
         $zone_configurations = array();
         
-        $zones_with_australia_post = $this->get_shipping_zones_with_australia_post();
-        foreach ($zones_with_australia_post as $zone) {
+        $zones_with_usps = $this->get_shipping_zones_with_usps();
+        foreach ($zones_with_usps as $zone) {
             $method_settings = $this->get_method_settings_for_zone($zone);
             if (!empty($method_settings)) {
                 $zone_configurations[] = array(
@@ -238,26 +289,31 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     public function get_method_settings() {
         $settings = array(
             'general' => array(),
-            'packing' => array(),
             'services' => array(),
+            'packaging' => array(),
             'advanced' => array(),
         );
         
         // Get global settings
-        $global_settings = get_option('woocommerce_australia_post_settings', array());
+        $global_settings = get_option('woocommerce_usps_settings', array());
         if (!empty($global_settings)) {
             $settings['general'] = $this->sanitize_settings($global_settings);
         }
         
         // Get zone-specific settings
-        $zones_with_australia_post = $this->get_shipping_zones_with_australia_post();
-        foreach ($zones_with_australia_post as $zone) {
+        $zones_with_usps = $this->get_shipping_zones_with_usps();
+        foreach ($zones_with_usps as $zone) {
             $method_settings = $this->get_method_settings_for_zone($zone);
             if (!empty($method_settings)) {
-                // Categorize settings based on common Australia Post configuration patterns
+                // Categorize settings based on common USPS configuration patterns
                 $categorized = $this->categorize_settings($method_settings);
                 $settings = array_merge_recursive($settings, $categorized);
             }
+        }
+        
+        // Add demo data if no real settings
+        if (empty($settings['general'])) {
+            $settings['general'] = $this->get_demo_settings();
         }
         
         return $settings;
@@ -272,24 +328,24 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     private function categorize_settings($settings) {
         $categorized = array(
             'general' => array(),
-            'packing' => array(),
             'services' => array(),
+            'packaging' => array(),
             'advanced' => array(),
         );
         
         // Define key patterns for each category
-        $packing_keys = array('packing_method', 'box_packing', 'max_weight', 'box', 'letter');
-        $service_keys = array('service', 'satchel', 'rate', 'extra_cover', 'signature');
-        $advanced_keys = array('tax', 'origin', 'debug', 'api');
+        $service_keys = array('service', 'domestic', 'international', 'rate');
+        $packaging_keys = array('packaging', 'box', 'weight', 'package');
+        $advanced_keys = array('debug', 'tax', 'handling', 'free');
         
         foreach ($settings as $key => $value) {
             $key_lower = strtolower($key);
             
-            if (in_array($key_lower, $packing_keys) || strpos($key_lower, 'pack') !== false) {
-                $categorized['packing'][$key] = $value;
-            } elseif (in_array($key_lower, $service_keys) || strpos($key_lower, 'service') !== false) {
+            if (in_array($key_lower, $service_keys) || strpos($key_lower, 'service') !== false) {
                 $categorized['services'][$key] = $value;
-            } elseif (in_array($key_lower, $advanced_keys) || strpos($key_lower, 'api') !== false) {
+            } elseif (in_array($key_lower, $packaging_keys) || strpos($key_lower, 'pack') !== false) {
+                $categorized['packaging'][$key] = $value;
+            } elseif (in_array($key_lower, $advanced_keys) || strpos($key_lower, 'debug') !== false) {
                 $categorized['advanced'][$key] = $value;
             } else {
                 $categorized['general'][$key] = $value;
@@ -300,7 +356,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     }
 
     /**
-     * Get full export data including all Australia Post configuration
+     * Get full export data including all USPS configuration
      *
      * @return array
      */
@@ -313,7 +369,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     }
 
     /**
-     * Check if the Australia Post plugin is active
+     * Check if the USPS plugin is active
      *
      * @return bool
      */
@@ -339,25 +395,24 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
         return self::METHOD_ID;
     }
 
-	/**
-	 * Check if the current user has the required capabilities to export Australia Post settings
-	 *
-	 * @return bool
-	 */
-	public function check_step_capabilities(): bool {
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return false;
-			}
+    /**
+     * Check if the current user has the required capabilities to export USPS settings
+     *
+     * @return bool
+     */
+    public function check_step_capabilities(): bool {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return false;
+        }
 
-			if ( ! current_user_can( 'edit_posts' ) ) {
-				return false;
-			}
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            return false;
+        }
 
-			if ( ! current_user_can( 'edit_users' ) ) {
-				return false;
-			}
+        if ( ! current_user_can( 'edit_users' ) ) {
+            return false;
+        }
 
-			return true;
-		}
-
+        return true;
+    }
 }

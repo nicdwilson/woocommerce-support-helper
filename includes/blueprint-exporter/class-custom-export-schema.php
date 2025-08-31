@@ -60,10 +60,6 @@ class Custom_Export_Schema extends ExportSchema {
         if (class_exists('\WooCommerceSupportHelper\Shipping_Methods_Exporter')) {
             try {
                 $shipping_exporter = new \WooCommerceSupportHelper\Shipping_Methods_Exporter();
-                if (class_exists('\WooCommerceSupportHelper\Logger')) {
-                    \WooCommerceSupportHelper\Logger::info('🚀 Shipping Methods Exporter initialized during export');
-	                \WooCommerceSupportHelper\Logger::info( 'built_in_exporters: ' . print_r( $built_in_exporters, true ));
-                }
             } catch (Exception $e) {
                 if (class_exists('\WooCommerceSupportHelper\Logger')) {
                     \WooCommerceSupportHelper\Logger::error('❌ Error initializing Shipping Methods Exporter during export', array(
@@ -86,10 +82,8 @@ class Custom_Export_Schema extends ExportSchema {
          */
         $exporters = $this->wp_apply_filters( 'wooblueprint_exporters', array_merge( $this->exporters, $built_in_exporters ) );
 
-	    \WooCommerceSupportHelper\Logger::info( 'this_exporters: ' . print_r( $this->exporters, true ));
-
-	    \WooCommerceSupportHelper\Logger::info( 'exporters: ' . print_r( $exporters, true ));
-
+        // Deduplicate exporters to prevent duplicate processing
+        $exporters = $this->deduplicate_exporters($exporters);
         
         // Validate that the exporters are instances of StepExporter.
         $exporters = array_filter(
@@ -98,14 +92,20 @@ class Custom_Export_Schema extends ExportSchema {
                 return $exporter instanceof StepExporter;
             }
         );
+
+
+        // TODO: Provide a whitelist of acceptable exporters
         
-        // Log what exporters we found
+        // Log what exporters we found after deduplication
         if (class_exists('\WooCommerceSupportHelper\Logger')) {
-            \WooCommerceSupportHelper\Logger::info('🔍 Custom_Export_Schema: Found exporters', array(
+            \WooCommerceSupportHelper\Logger::info('🔍 Custom_Export_Schema: Found exporters after deduplication', array(
                 'total_exporters' => count($exporters),
                 'exporter_classes' => array_map('get_class', $exporters),
                 'exporter_step_names' => array_map(function($exporter) {
                     return method_exists($exporter, 'get_step_name') ? $exporter->get_step_name() : 'unknown';
+                }, $exporters),
+                'exporter_aliases' => array_map(function($exporter) {
+                    return $exporter instanceof HasAlias ? $exporter->get_alias() : 'none';
                 }, $exporters),
             ));
         }
@@ -130,23 +130,47 @@ class Custom_Export_Schema extends ExportSchema {
         $logger = new Logger();
         $logger->start_export( $exporters );
 
-        foreach ( $exporters as $exporter ) {
+        foreach ( $exporters as $index => $exporter ) {
             try {
                 // Log which exporter we're processing
                 if (class_exists('\WooCommerceSupportHelper\Logger')) {
                     \WooCommerceSupportHelper\Logger::info('🔍 Custom_Export_Schema: Processing exporter', array(
+                        'exporter_index' => $index,
                         'exporter_class' => get_class($exporter),
                         'step_name' => method_exists($exporter, 'get_step_name') ? $exporter->get_step_name() : 'unknown',
+                        'alias' => $exporter instanceof HasAlias ? $exporter->get_alias() : 'none',
+                        'total_exporters' => count($exporters)
                     ));
                 }
                 
                 $this->publish( 'onBeforeExport', $exporter );
                 $step = $exporter->export();
                 $this->custom_add_result_to_schema( $schema, $step );
+                
+                if (class_exists('\WooCommerceSupportHelper\Logger')) {
+                    \WooCommerceSupportHelper\Logger::info('✅ Custom_Export_Schema: Exporter processed successfully', array(
+                        'exporter_index' => $index,
+                        'exporter_class' => get_class($exporter),
+                        'step_name' => method_exists($exporter, 'get_step_name') ? $exporter->get_step_name() : 'unknown',
+                        'step_type' => is_array($step) ? 'array(' . count($step) . ' items)' : get_class($step)
+                    ));
+                }
 
             } catch ( \Throwable $e ) {
                 $step_name = $exporter instanceof HasAlias ? $exporter->get_alias() : $exporter->get_step_name();
                 $logger->export_step_failed( $step_name, $e );
+                
+                if (class_exists('\WooCommerceSupportHelper\Logger')) {
+                    \WooCommerceSupportHelper\Logger::error('❌ Custom_Export_Schema: Exporter failed', array(
+                        'exporter_index' => $index,
+                        'exporter_class' => get_class($exporter),
+                        'step_name' => $step_name,
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ));
+                }
+                
                 return new WP_Error( 'wooblueprint_export_step_failed', 'Export step failed: ' . $e->getMessage() );
             }
         }
@@ -156,6 +180,69 @@ class Custom_Export_Schema extends ExportSchema {
         return $schema;
     }
     
+    /**
+     * Deduplicate exporters to prevent duplicate processing
+     * 
+     * This method ensures that each exporter is only processed once by:
+     * 1. Using class name as primary identifier
+     * 2. Using step name as secondary identifier for exporters with same class
+     * 3. Keeping the first occurrence of each unique exporter
+     *
+     * @param array $exporters Array of exporters to deduplicate
+     * @return array Deduplicated array of exporters
+     */
+    private function deduplicate_exporters($exporters) {
+        $unique_exporters = array();
+        $seen_exporters = array();
+        
+        foreach ($exporters as $exporter) {
+            if (!$exporter instanceof StepExporter) {
+                continue;
+            }
+            
+            $class_name = get_class($exporter);
+            $step_name = method_exists($exporter, 'get_step_name') ? $exporter->get_step_name() : 'unknown';
+            $alias = $exporter instanceof HasAlias ? $exporter->get_alias() : $step_name;
+            
+            // Create a unique identifier for this exporter
+            $exporter_id = $class_name . '::' . $step_name . '::' . $alias;
+            
+            if (!isset($seen_exporters[$exporter_id])) {
+                $unique_exporters[] = $exporter;
+                $seen_exporters[$exporter_id] = true;
+                
+                if (class_exists('\WooCommerceSupportHelper\Logger')) {
+                    \WooCommerceSupportHelper\Logger::debug('🔍 Custom_Export_Schema: Added unique exporter', array(
+                        'class_name' => $class_name,
+                        'step_name' => $step_name,
+                        'alias' => $alias,
+                        'exporter_id' => $exporter_id
+                    ));
+                }
+            } else {
+                if (class_exists('\WooCommerceSupportHelper\Logger')) {
+                    \WooCommerceSupportHelper\Logger::info('⚠️ Custom_Export_Schema: Skipped duplicate exporter', array(
+                        'class_name' => $class_name,
+                        'step_name' => $step_name,
+                        'alias' => $alias,
+                        'exporter_id' => $exporter_id,
+                        'reason' => 'Already processed'
+                    ));
+                }
+            }
+        }
+        
+        if (class_exists('\WooCommerceSupportHelper\Logger')) {
+            \WooCommerceSupportHelper\Logger::info('🔍 Custom_Export_Schema: Exporter deduplication completed', array(
+                'original_count' => count($exporters),
+                'unique_count' => count($unique_exporters),
+                'duplicates_removed' => count($exporters) - count($unique_exporters)
+            ));
+        }
+        
+        return $unique_exporters;
+    }
+
     /**
      * Custom implementation of add_result_to_schema since the parent method is private
      *
