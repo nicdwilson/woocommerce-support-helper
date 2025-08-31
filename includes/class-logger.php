@@ -23,22 +23,24 @@ class Logger {
         if (function_exists('wc_get_logger')) {
             return wc_get_logger();
         }
-        /** Fallback: create a dummy logger if WooCommerce is not loaded
+        // Fallback: create a dummy logger if WooCommerce is not loaded
         return new class {
             public function log($level, $message, $context = array()) {
                 error_log("[{$level}] {$message}");
             }
             public function info($message, $context = array()) {
-                $this->log('info', $message, $context);
+                $this->log('info', $message);
             }
             public function debug($message, $context = array()) {
-                $this->log('debug', $message, $context);
+                $this->log('debug', $message);
             }
             public function error($message, $context = array()) {
-                $this->log('error', $message, $context);
+                $this->log('error', $message);
+            }
+            public function warning($message, $context = array()) {
+                $this->log('warning', $message);
             }
         };
-         */
     }
 
     /**

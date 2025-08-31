@@ -45,7 +45,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
      * @return string
      */
     public function get_alias() {
-        return 'AustraliaPostOptions';
+        return 'wcShippingAustraliaPost';
     }
 
     /**
@@ -88,6 +88,12 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
         
         // Get per-method settings for each shipping zone
         $shipping_zones = $this->get_shipping_zones_with_australia_post();
+
+        Logger::debug('🇦🇺 Found shipping zones with Australia Post', array(
+            'shipping_zones_count' => count($shipping_zones),
+            'shipping_zones_keys' => array_keys($shipping_zones),
+        ));
+
         foreach ($shipping_zones as $zone) {
             $method_settings = $this->get_method_settings_for_zone($zone);
             if (!empty($method_settings)) {
@@ -113,39 +119,35 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
     public function get_shipping_zones_with_australia_post() {
         $zones_with_australia_post = array();
         
-        if (!class_exists('WC_Shipping_Zones')) {
-            Logger::warning('🇦🇺 WC_Shipping_Zones class not available');
-            return $zones_with_australia_post;
+        $data_store = \WC_Data_Store::load( 'shipping-zone' );
+        
+        $raw_zones = $data_store->get_zones();
+        foreach ( $raw_zones as $raw_zone ) {
+            $zones[] = new \WC_Shipping_Zone( $raw_zone );
+        }
+        $zones[] = new \WC_Shipping_Zone( 0 ); // ADD ZONE "0" MANUALLY
+
+        if( !empty( $zones)){
+            Logger::debug('🇦🇺 Found ' . count( $zones ) . ' shipping zones');
         }
         
-        $shipping_zones = \WC_Shipping_Zones::get_zones();
-        
-        // Add the "Rest of the World" zone (ID 0)
-        $shipping_zones[] = \WC_Shipping_Zones::get_zone(0);
-        
-        foreach ($shipping_zones as $zone) {
-            if (!$zone || !is_object($zone)) {
-                continue;
-            }
-            
-            $methods = $zone->get_shipping_methods();
-            foreach ($methods as $method) {
-                if ($method->id === self::METHOD_ID && $method->is_enabled()) {
-                    $zones_with_australia_post[] = array(
-                        'zone_id' => $zone->get_id(),
-                        'zone_name' => $zone->get_zone_name(),
-                        'method_instance_id' => $method->get_instance_id(),
-                        'method_settings' => $method->get_instance_option(),
-                    );
-                    Logger::debug('🇦🇺 Found Australia Post method in zone', array(
-                        'zone_id' => $zone->get_id(),
-                        'zone_name' => $zone->get_zone_name(),
-                        'method_instance_id' => $method->get_instance_id(),
-                    ));
+        foreach ($zones as $zone) {
+                Logger::debug('🇦🇺 Found zone ' . $zone->get_id() . ' ' . $zone->get_zone_name());
+                $methods = $zone->get_shipping_methods();
+                foreach ($methods as $method) {
+                    if ($method->id === self::METHOD_ID ) {
+                        Logger::debug('🇦🇺 Found method ' . $method->id );
+                        $zones_with_australia_post[] = array(
+                            'zone_id' => $zone->get_id(),
+                            'zone_name' => $zone->get_zone_name(),
+                            'method_instance_id' => $method->get_instance_id(),
+                        );
+                    }
                 }
-            }
         }
-        
+
+        Logger::debug('🇦🇺 Found ' . count( $zones_with_australia_post ) . ' zones with Australia Post');
+
         return $zones_with_australia_post;
     }
 
