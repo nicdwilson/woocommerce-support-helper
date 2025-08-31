@@ -139,18 +139,18 @@ class Shipping_Methods_Exporter {
 	     * Add custom export functions
 	     */
 		add_filter('wooblueprint_exporters', array( $this, 'add_shipping_exporters' ), 10 );
-            
-    }
 
+
+		/**
+		 * Make sure the payload is persisted
+		 */
+		add_filter('wc_support_helper_payload_contains_steps', array( $this, 'add_steps_to_export_schema'), 10, 2);
+    }
 
 	public function add_shipping_exporters( $exporters ){
 		// Add all loaded shipping exporters to the Blueprint exporters list
 		foreach ($this->shipping_exporters as $plugin_slug => $exporter) {
 			$exporters[] = $exporter;
-			Logger::debug('🚀 Added shipping exporter to Blueprint exporters', array(
-				'plugin_slug' => $plugin_slug,
-				'exporter_class' => get_class($exporter)
-			));
 		}
 		return $exporters;
 	}
@@ -283,9 +283,9 @@ class Shipping_Methods_Exporter {
         // Only add the group if we have shipping items
         if (!empty($shipping_items)) {
             $settings['blueprint_step_groups'][] = array(
-                'id'          => 'shipping_plugins',
-                'description' => __( 'Includes shipping plugin settings', 'woocommerce' ),
-                'label'       => __( 'Shipping plugin settings', 'woocommerce' ),
+                'id'          => 'plugin_settings',
+                'description' => __( 'Includes plugin settings', 'woocommerce' ),
+                'label'       => __( 'Include plugin settings', 'woocommerce' ),
                 'icon'        => 'layout',
                 'items'       => $shipping_items,
             );
@@ -293,6 +293,80 @@ class Shipping_Methods_Exporter {
         }
 
         return $settings;
+    }
+
+    /**
+     * Add shipping method steps to the export schema based on payload selections
+     *
+     * @param array $blueprint_steps Current blueprint steps
+     * @param array $payload The original payload from the frontend (optional)
+     * @return array Modified blueprint steps
+     */
+    public function add_steps_to_export_schema($blueprint_steps, $payload) {
+
+        // If no payload provided, return original steps
+        if (empty( $payload ) ) {
+            Logger::debug('🔍 No payload provided, returning original steps');
+            return $blueprint_steps;
+        }
+
+        // Check if plugin_settings are selected in the payload
+        if (!isset($payload['plugin_settings']) || empty($payload['plugin_settings'])) {
+            Logger::debug('🔍 No plugin_settings found in payload');
+            return $blueprint_steps;
+        }
+
+        $selected_plugins = $payload['plugin_settings'];
+
+        // Map selected plugin slugs to exporter aliases
+        foreach ($selected_plugins as $plugin_slug) {
+            // Check if this is one of our supported shipping plugins
+            if (isset($this->supported_plugins[$plugin_slug])) {
+                // Get the exporter instance for this plugin
+                if (isset($this->shipping_exporters[$plugin_slug])) {
+                    $exporter = $this->shipping_exporters[$plugin_slug];
+                    
+                    // Get the alias from the exporter
+                    if (method_exists($exporter, 'get_alias')) {
+                        $alias = $exporter->get_alias();
+                        $shipping_aliases[] = $alias;
+                        
+                        Logger::debug('🔍 Mapped plugin slug to alias', array(
+                            'plugin_slug' => $plugin_slug,
+                            'alias' => $alias,
+                            'exporter_class' => get_class($exporter)
+                        ));
+                    } else {
+                        Logger::warning('⚠️ Exporter does not implement get_alias method', array(
+                            'plugin_slug' => $plugin_slug,
+                            'exporter_class' => get_class($exporter)
+                        ));
+                    }
+                } else {
+                    Logger::warning('⚠️ Exporter not found for plugin slug', array(
+                        'plugin_slug' => $plugin_slug,
+                        'available_exporters' => array_keys($this->shipping_exporters)
+                    ));
+                }
+            } else {
+                Logger::debug('🔍 Plugin slug not in supported plugins', array(
+                    'plugin_slug' => $plugin_slug,
+                    'supported_plugins' => array_keys($this->supported_plugins)
+                ));
+            }
+        }
+
+
+        if (!empty($shipping_aliases)) {
+            $blueprint_steps = array_merge($blueprint_steps, $shipping_aliases);
+            Logger::info('🔍 Added shipping aliases to blueprint steps', array(
+                'shipping_aliases' => $shipping_aliases,
+                'total_steps' => count($blueprint_steps),
+            ));
+        }
+
+
+        return $blueprint_steps;
     }
 
 }

@@ -186,17 +186,8 @@ class Blueprint_Exporter {
     public function handle_export_request($request) {
         
         $payload = $request->get_param( 'steps' );
-        $steps   = $this->steps_payload_to_blueprint_steps( $payload );
 
-        \WooCommerceSupportHelper\Logger::info('🚀 Steps processing', array(
-            'payload' => $payload,
-            'payload_type' => gettype($payload),
-            'payload_keys' => is_array($payload) ? array_keys($payload) : 'not_array',
-            'steps' => $steps,
-            'steps_type' => gettype($steps),
-            'steps_count' => is_array($steps) ? count($steps) : 'not_array',
-            'steps_sample' => is_array($steps) ? array_slice($steps, 0, 5) : 'not_array',
-        ));
+        $steps   = $this->steps_payload_to_blueprint_steps( $payload );
 
         // Use our custom ExportSchema instead of the default one
         if (class_exists('\WooCommerceSupportHelper\BlueprintExporter\Custom_Export_Schema')) {
@@ -264,18 +255,15 @@ class Blueprint_Exporter {
      * @return array
      */
     private function steps_payload_to_blueprint_steps( $steps ) {
-        \WooCommerceSupportHelper\Logger::info('🔍 Converting steps payload', array(
-            'input_steps' => $steps,
-            'input_type' => gettype($steps),
-            'input_keys' => is_array($steps) ? array_keys($steps) : 'not_array',
-        ));
         
         $blueprint_steps = array();
 
+        // Handle general settings
         if ( isset( $steps['settings'] ) && count( $steps['settings'] ) > 0 ) {
             $blueprint_steps = array_merge( $blueprint_steps, $steps['settings'] );
         }
 
+        // Handle plugin installations
         if ( isset( $steps['plugins'] ) && count( $steps['plugins'] ) > 0 ) {
             \WooCommerceSupportHelper\Logger::info('🔍 Found plugins in payload', array(
                 'plugins_count' => count($steps['plugins']),
@@ -284,9 +272,13 @@ class Blueprint_Exporter {
             $blueprint_steps[] = 'installPlugin';
         }
 
+        // Handle theme installations
         if ( isset( $steps['themes'] ) && count( $steps['themes'] ) > 0 ) {
             $blueprint_steps[] = 'installTheme';
         }
+
+        // Allow other modules to add their steps to the blueprint
+        $blueprint_steps = apply_filters('wc_support_helper_payload_contains_steps', $blueprint_steps, $steps);
 
         return $blueprint_steps;
     }
