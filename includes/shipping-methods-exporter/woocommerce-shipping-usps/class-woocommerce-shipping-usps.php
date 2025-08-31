@@ -80,35 +80,50 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
         $global_settings = get_option('woocommerce_usps_settings', array());
         if (!empty($global_settings)) {
             $site_options['woocommerce_usps_settings'] = $this->sanitize_settings($global_settings);
-            Logger::debug('🇺🇸 Found global USPS settings', array(
+            Logger::info('🇺🇸 Found global USPS settings', array(
                 'settings_count' => count($global_settings),
                 'settings_keys' => array_keys($global_settings),
             ));
+        } else {
+            Logger::warning('🇺🇸 No global USPS settings found');
         }
         
-        // Get per-method settings for each shipping zone
-        $shipping_zones = $this->get_shipping_zones_with_usps();
-        foreach ($shipping_zones as $zone) {
-            $method_settings = $this->get_method_settings_for_zone($zone);
-            if (!empty($method_settings)) {
-                $option_name = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
-                $site_options[$option_name] = $this->sanitize_settings($method_settings);
-                Logger::debug('🇺🇸 Found method settings for zone', array(
-                    'zone_id' => $zone['zone_id'],
-                    'zone_name' => $zone['zone_name'],
-                    'method_instance_id' => $zone['method_instance_id'],
-                    'settings_count' => count($method_settings),
-                ));
-            }
-        }
-        
-        // Add dummy data for testing if no real settings found
-        if (empty($site_options)) {
-            $site_options['woocommerce_usps_demo_settings'] = $this->get_demo_settings();
-            Logger::info('🇺🇸 No real USPS settings found, using demo data for testing', array(
-                'demo_settings_count' => count($site_options['woocommerce_usps_demo_settings']),
+        // Get zone-specific settings with better error handling
+        try {
+            $shipping_zones = $this->get_shipping_zones_with_usps();
+            Logger::info('🇺🇸 Shipping zones processing', array(
+                'zones_found' => count($shipping_zones),
+                'zones_data' => $shipping_zones
             ));
+            
+            foreach ($shipping_zones as $zone) {
+                $method_settings = $this->get_method_settings_for_zone($zone);
+                if (!empty($method_settings)) {
+                    $option_name = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
+                    $site_options[$option_name] = $this->sanitize_settings($method_settings);
+                    Logger::info('🇺🇸 Added zone settings', array(
+                        'zone_id' => $zone['zone_id'],
+                        'option_name' => $option_name,
+                        'settings_count' => count($method_settings)
+                    ));
+                } else {
+                    Logger::warning('🇺🇸 No method settings found for zone', array(
+                        'zone_id' => $zone['zone_id'],
+                        'zone_name' => $zone['zone_name']
+                    ));
+                }
+            }
+        } catch (Exception $e) {
+            Logger::error('🇺🇸 Error processing shipping zones', array(
+                'error' => $e->getMessage(),
+                'fallback_to_direct_scan' => true
+            ));
+            
+            // Fallback: scan options directly
+            $site_options = array_merge($site_options, $this->scan_usps_options_directly());
         }
+        
+        Logger::debug('🇺🇸 Found ' . count( $site_options ) . ' USPS site options');
         
         return $site_options;
     }
@@ -121,38 +136,65 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
     public function get_shipping_zones_with_usps() {
         $zones_with_usps = array();
         
-        if (!class_exists('WC_Shipping_Zones')) {
-            Logger::warning('🇺🇸 WC_Shipping_Zones class not available');
-            return $zones_with_usps;
-        }
-        
-        $shipping_zones = \WC_Shipping_Zones::get_zones();
-        
-        // Add the "Rest of the World" zone (ID 0)
-        $shipping_zones[] = \WC_Shipping_Zones::get_zone(0);
-        
-        foreach ($shipping_zones as $zone) {
-            if (!$zone || !is_object($zone)) {
-                continue;
-            }
+        // Try multiple approaches to get shipping zones
+        if (class_exists('WC_Shipping_Zones')) {
+            // Primary method
+            $shipping_zones = \WC_Shipping_Zones::get_zones();
             
-            $methods = $zone->get_shipping_methods();
-            foreach ($methods as $method) {
-                if ($method->id === self::METHOD_ID && $method->is_enabled()) {
-                    $zones_with_usps[] = array(
-                        'zone_id' => $zone->get_id(),
-                        'zone_name' => $zone->get_zone_name(),
-                        'method_instance_id' => $method->get_instance_id(),
-                        'method_settings' => $method->get_instance_option(),
-                    );
-                    Logger::debug('🇺🇸 Found USPS method in zone', array(
-                        'zone_id' => $zone->get_id(),
-                        'zone_name' => $zone->get_zone_name(),
-                        'method_instance_id' => $method->get_instance_id(),
-                    ));
+            // Add the "Rest of the World" zone (ID 0)
+            $shipping_zones[] = \WC_Shipping_Zones::get_zone(0);
+            
+            foreach ($shipping_zones as $zone) {
+                if (!$zone || !is_object($zone)) {
+                    continue;
+                }
+                
+                $methods = $zone->get_shipping_methods();
+                foreach ($methods as $method) {
+                    if ($method->id === self::METHOD_ID && $method->is_enabled()) {
+                        $zones_with_usps[] = array(
+                            'zone_id' => $zone->get_id(),
+                            'zone_name' => $zone->get_zone_name(),
+                            'method_instance_id' => $method->get_instance_id(),
+                            'method_settings' => $method->get_instance_option(),
+                        );
+                        Logger::info('🇺🇸 Found USPS method in zone', array(
+                            'zone_id' => $zone->get_id(),
+                            'zone_name' => $zone->get_zone_name(),
+                            'method_instance_id' => $method->get_instance_id(),
+                        ));
+                    }
                 }
             }
+        } elseif (function_exists('wc_get_shipping_zones')) {
+            // Alternative method
+            $shipping_zones = wc_get_shipping_zones();
+            Logger::info('🇺🇸 Using wc_get_shipping_zones() fallback', array(
+                'zones_count' => count($shipping_zones)
+            ));
+            
+            foreach ($shipping_zones as $zone) {
+                if (isset($zone['zone_id']) && isset($zone['shipping_methods'])) {
+                    foreach ($zone['shipping_methods'] as $method) {
+                        if ($method['method_id'] === self::METHOD_ID && $method['is_enabled']) {
+                            $zones_with_usps[] = array(
+                                'zone_id' => $zone['zone_id'],
+                                'zone_name' => $zone['zone_name'],
+                                'method_instance_id' => $method['instance_id'],
+                                'method_settings' => $method['settings'] ?? array(),
+                            );
+                        }
+                    }
+                }
+            }
+        } else {
+            Logger::warning('🇺🇸 No WooCommerce shipping zone methods available');
         }
+        
+        Logger::info('🇺🇸 USPS zones detection completed', array(
+            'zones_found' => count($zones_with_usps),
+            'zones_data' => $zones_with_usps
+        ));
         
         return $zones_with_usps;
     }
@@ -170,48 +212,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
         
         $option_name = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
         return get_option($option_name, array());
-    }
-
-    /**
-     * Get demo settings for testing when no real USPS configuration exists
-     *
-     * @return array
-     */
-    private function get_demo_settings() {
-        return array(
-            'enabled' => 'yes',
-            'title' => 'USPS Shipping',
-            'user_id' => '***CONFIGURED***',
-            'origin' => '12345',
-            'packaging' => 'package',
-            'offer_rates' => 'all',
-            'fallback' => 'no',
-            'debug_mode' => 'no',
-            'domestic_services' => array(
-                'PRIORITY' => 'Priority Mail',
-                'FIRST CLASS' => 'First-Class Mail',
-                'MEDIA' => 'Media Mail',
-                'LIBRARY' => 'Library Mail'
-            ),
-            'international_services' => array(
-                'GXG' => 'Global Express Guaranteed',
-                'PRIORITY' => 'Priority Mail International',
-                'FIRST CLASS' => 'First-Class Mail International'
-            ),
-            'box_weights' => array(
-                '0.5' => '0.5 lbs',
-                '1.0' => '1.0 lbs',
-                '2.0' => '2.0 lbs',
-                '5.0' => '5.0 lbs'
-            ),
-            'handling_fee' => '2.50',
-            'min_amount' => '0.00',
-            'max_amount' => '1000.00',
-            'tax_status' => 'taxable',
-            'cost' => '0.00',
-            'free_shipping' => 'no',
-            'free_shipping_min_amount' => '100.00'
-        );
     }
 
     /**
@@ -282,6 +282,36 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
     }
 
     /**
+     * Scan for USPS options directly from the database as a fallback
+     *
+     * @return array
+     */
+    protected function scan_usps_options_directly() {
+        global $wpdb;
+        $options = array();
+        
+        // Look for all USPS related options
+        $usps_options = $wpdb->get_results(
+            "SELECT option_name, option_value FROM {$wpdb->options} 
+             WHERE option_name LIKE 'woocommerce_usps_%'"
+        );
+        
+        foreach ($usps_options as $option) {
+            $option_value = maybe_unserialize($option->option_value);
+            if (!empty($option_value)) {
+                $options[$option->option_name] = $this->sanitize_settings($option_value);
+                Logger::info('🇺🇸 Found USPS option directly', array(
+                    'option_name' => $option->option_name,
+                    'value_type' => gettype($option_value),
+                    'is_array' => is_array($option_value)
+                ));
+            }
+        }
+        
+        return $options;
+    }
+
+    /**
      * Get comprehensive method settings organized by category
      *
      * @return array
@@ -298,23 +328,44 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
         $global_settings = get_option('woocommerce_usps_settings', array());
         if (!empty($global_settings)) {
             $settings['general'] = $this->sanitize_settings($global_settings);
+            Logger::info('🇺🇸 Added global USPS settings to method settings', array(
+                'settings_count' => count($global_settings)
+            ));
         }
         
         // Get zone-specific settings
-        $zones_with_usps = $this->get_shipping_zones_with_usps();
-        foreach ($zones_with_usps as $zone) {
-            $method_settings = $this->get_method_settings_for_zone($zone);
-            if (!empty($method_settings)) {
-                // Categorize settings based on common USPS configuration patterns
-                $categorized = $this->categorize_settings($method_settings);
-                $settings = array_merge_recursive($settings, $categorized);
+        try {
+            $zones_with_usps = $this->get_shipping_zones_with_usps();
+            foreach ($zones_with_usps as $zone) {
+                $method_settings = $this->get_method_settings_for_zone($zone);
+                if (!empty($method_settings)) {
+                    // Categorize settings based on common USPS configuration patterns
+                    $categorized = $this->categorize_settings($method_settings);
+                    $settings = array_merge_recursive($settings, $categorized);
+                    
+                    Logger::info('🇺🇸 Added zone settings to method settings', array(
+                        'zone_id' => $zone['zone_id'],
+                        'zone_name' => $zone['zone_name'],
+                        'categorized_count' => count($categorized)
+                    ));
+                }
             }
+        } catch (Exception $e) {
+            Logger::error('🇺🇸 Error getting zone-specific method settings', array(
+                'error' => $e->getMessage()
+            ));
         }
         
         // Add demo data if no real settings
         if (empty($settings['general'])) {
             $settings['general'] = $this->get_demo_settings();
+            Logger::info('🇺🇸 Added demo USPS settings due to no real settings found');
         }
+        
+        Logger::info('🇺🇸 Method settings compilation completed', array(
+            'total_sections' => count($settings),
+            'sections' => array_keys($settings)
+        ));
         
         return $settings;
     }

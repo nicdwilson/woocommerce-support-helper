@@ -72,7 +72,22 @@ class Shipping_Methods_Exporter {
                 
                 if (class_exists($full_class_name)) {
                     $exporter = new $full_class_name();
-                    $this->shipping_exporters[$plugin_slug] = $exporter;
+                    
+                    // Check if the plugin is active before adding the exporter
+                    if (method_exists($exporter, 'is_plugin_active') && $exporter->is_plugin_active()) {
+                        $this->shipping_exporters[$plugin_slug] = $exporter;
+                        Logger::info('✅ Loaded active shipping exporter', array(
+                            'plugin_slug' => $plugin_slug,
+                            'plugin_name' => $plugin_name,
+                            'exporter_class' => get_class($exporter)
+                        ));
+                    } else {
+                        Logger::info('ℹ️ Skipped inactive shipping plugin', array(
+                            'plugin_slug' => $plugin_slug,
+                            'plugin_name' => $plugin_name,
+                            'reason' => 'Plugin not active'
+                        ));
+                    }
 
                 } else {
                     Logger::warning('⚠️ ' . $plugin_name . ' exporter class not found after including file', array(
@@ -148,10 +163,22 @@ class Shipping_Methods_Exporter {
     }
 
 	public function add_shipping_exporters( $exporters ){
-		// Add all loaded shipping exporters to the Blueprint exporters list
-		foreach ($this->shipping_exporters as $plugin_slug => $exporter) {
+		// Add only active shipping exporters to the Blueprint exporters list
+		$active_exporters = $this->get_active_shipping_exporters();
+		
+		foreach ($active_exporters as $plugin_slug => $exporter) {
 			$exporters[] = $exporter;
+			Logger::debug('🔍 Added active shipping exporter to Blueprint exporters', array(
+				'plugin_slug' => $plugin_slug,
+				'exporter_class' => get_class($exporter)
+			));
 		}
+		
+		Logger::info('🔍 Added shipping exporters to Blueprint', array(
+			'total_exporters' => count($exporters),
+			'active_shipping_exporters' => count($active_exporters)
+		));
+		
 		return $exporters;
 	}
 
@@ -164,21 +191,33 @@ class Shipping_Methods_Exporter {
      */
     public function export_shipping_method_site_options($site_options) {
         
-        // Check if we have any exporters available
-        if (empty($this->shipping_exporters)) {
+        // Check if we have any active exporters available
+        $active_exporters = $this->get_active_shipping_exporters();
+        if (empty($active_exporters)) {
+            Logger::info('ℹ️ No active shipping exporters available for export');
             return $site_options;
         }
         
         $shipping_method_options = array();
-        foreach ($this->shipping_exporters as $exporter_key => $exporter) {
+        foreach ($active_exporters as $exporter_key => $exporter) {
             
             if (method_exists($exporter, 'get_site_options')) {
                 $exporter_options = $exporter->get_site_options();
                 $shipping_method_options = array_merge($shipping_method_options, $exporter_options);
+                
+                Logger::debug('🔍 Exported site options from active exporter', array(
+                    'exporter_key' => $exporter_key,
+                    'options_count' => count($exporter_options)
+                ));
             }
         }
         
         $final_options = array_merge($site_options, $shipping_method_options);
+        
+        Logger::info('🔍 Shipping method site options export completed', array(
+            'active_exporters_processed' => count($active_exporters),
+            'total_options_added' => count($shipping_method_options)
+        ));
         
         return $final_options;
     }
@@ -191,20 +230,36 @@ class Shipping_Methods_Exporter {
      */
     public function export_shipping_zone_configurations($shipping_zones) {
         
-        // Check if we have any exporters available
-        if (empty($this->shipping_exporters)) {
+        // Check if we have any active exporters available
+        $active_exporters = $this->get_active_shipping_exporters();
+        if (empty($active_exporters)) {
+            Logger::info('ℹ️ No active shipping exporters available for zone configuration export');
             return $shipping_zones;
         }
         
         $shipping_zone_options = array();
-        foreach ($this->shipping_exporters as $exporter_key => $exporter) {
+        foreach ($active_exporters as $exporter_key => $exporter) {
             
             if (method_exists($exporter, 'get_shipping_zone_configurations')) {
                 $exporter_zones = $exporter->get_shipping_zone_configurations();
                 $shipping_zone_options = array_merge($shipping_zone_options, $exporter_zones);
+                
+                Logger::debug('🔍 Exported zone configurations from active exporter', array(
+                    'exporter_key' => $exporter_key,
+                    'zones_count' => count($exporter_zones)
+                ));
             } else {
+                Logger::debug('🔍 Exporter does not implement get_shipping_zone_configurations', array(
+                    'exporter_key' => $exporter_key,
+                    'exporter_class' => get_class($exporter)
+                ));
             }
         }
+
+        Logger::info('🔍 Shipping zone configurations export completed', array(
+            'active_exporters_processed' => count($active_exporters),
+            'total_zones_added' => count($shipping_zone_options)
+        ));
 
         return array_merge($shipping_zones, $shipping_zone_options);
     }
@@ -227,6 +282,23 @@ class Shipping_Methods_Exporter {
      */
     public function get_shipping_exporters() {
         return $this->shipping_exporters;
+    }
+    
+    /**
+     * Get only active shipping exporters
+     *
+     * @return array
+     */
+    public function get_active_shipping_exporters() {
+        $active_exporters = array();
+        
+        foreach ($this->shipping_exporters as $plugin_slug => $exporter) {
+            if (method_exists($exporter, 'is_plugin_active') && $exporter->is_plugin_active()) {
+                $active_exporters[$plugin_slug] = $exporter;
+            }
+        }
+        
+        return $active_exporters;
     }
     
     /**
@@ -269,8 +341,10 @@ class Shipping_Methods_Exporter {
         // Get available shipping exporters
         $shipping_items = array();
         
-        // Add items for all loaded shipping exporters
-        foreach ($this->shipping_exporters as $plugin_slug => $exporter) {
+        // Add items only for active shipping exporters
+        $active_exporters = $this->get_active_shipping_exporters();
+        
+        foreach ($active_exporters as $plugin_slug => $exporter) {
             $plugin_name = isset($this->supported_plugins[$plugin_slug]) ? $this->supported_plugins[$plugin_slug] : ucfirst(str_replace('-', ' ', $plugin_slug));
             
             $shipping_items[] = array(
@@ -280,7 +354,7 @@ class Shipping_Methods_Exporter {
             );
         }
         
-        // Only add the group if we have shipping items
+        // Only add the group if we have active shipping items
         if (!empty($shipping_items)) {
             $settings['blueprint_step_groups'][] = array(
                 'id'          => 'plugin_settings',
@@ -289,7 +363,13 @@ class Shipping_Methods_Exporter {
                 'icon'        => 'layout',
                 'items'       => $shipping_items,
             );
-
+            
+            Logger::info('🔍 Added shipping exporters to Blueprint UI', array(
+                'active_exporters_count' => count($active_exporters),
+                'ui_items_count' => count($shipping_items)
+            ));
+        } else {
+            Logger::info('ℹ️ No active shipping exporters to add to Blueprint UI');
         }
 
         return $settings;
@@ -326,20 +406,28 @@ class Shipping_Methods_Exporter {
                 if (isset($this->shipping_exporters[$plugin_slug])) {
                     $exporter = $this->shipping_exporters[$plugin_slug];
                     
-                    // Get the alias from the exporter
-                    if (method_exists($exporter, 'get_alias')) {
-                        $alias = $exporter->get_alias();
-                        $shipping_aliases[] = $alias;
-                        
-                        Logger::debug('🔍 Mapped plugin slug to alias', array(
-                            'plugin_slug' => $plugin_slug,
-                            'alias' => $alias,
-                            'exporter_class' => get_class($exporter)
-                        ));
+                    // Check if the plugin is active before processing
+                    if (method_exists($exporter, 'is_plugin_active') && $exporter->is_plugin_active()) {
+                        // Get the alias from the exporter
+                        if (method_exists($exporter, 'get_alias')) {
+                            $alias = $exporter->get_alias();
+                            $shipping_aliases[] = $alias;
+                            
+                            Logger::debug('🔍 Mapped active plugin slug to alias', array(
+                                'plugin_slug' => $plugin_slug,
+                                'alias' => $alias,
+                                'exporter_class' => get_class($exporter)
+                            ));
+                        } else {
+                            Logger::warning('⚠️ Exporter does not implement get_alias method', array(
+                                'plugin_slug' => $plugin_slug,
+                                'exporter_class' => get_class($exporter)
+                            ));
+                        }
                     } else {
-                        Logger::warning('⚠️ Exporter does not implement get_alias method', array(
+                        Logger::warning('⚠️ Skipped inactive plugin in export schema', array(
                             'plugin_slug' => $plugin_slug,
-                            'exporter_class' => get_class($exporter)
+                            'reason' => 'Plugin not active'
                         ));
                     }
                 } else {
