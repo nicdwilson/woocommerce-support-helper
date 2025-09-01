@@ -1,14 +1,15 @@
 <?php
-namespace WooCommerceSupportHelper\BlueprintExporter;
-
 /**
- * Handles private plugin export settings.
+ * Private Plugin Exporter Class
  *
  * @package WooCommerceSupportHelper\BlueprintExporter
+ * @since 1.0.0
  */
 
+namespace WooCommerceSupportHelper\BlueprintExporter;
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 
 /**
@@ -19,8 +20,8 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	 * Initialize the exporter.
 	 */
 	public function init() {
-		// This method is now handled by the main Blueprint_Exporter class
-		// Hooks are registered there instead
+		// This method is now handled by the main Blueprint_Exporter class.
+		// Hooks are registered there instead.
 	}
 
 	/**
@@ -33,7 +34,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	}
 
 	/**
-	 * Get the exporter description
+	 * Get the exporter description.
 	 *
 	 * @return string
 	 */
@@ -55,8 +56,8 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Modify the plugin exporter to enable private plugin exports.
 	 *
-	 * @param array $exporters
-	 * @return array
+	 * @param array $exporters Exporters array.
+	 * @return array Modified exporters array.
 	 */
 	public function modify_plugin_exporter( $exporters ) {
 		\WooCommerceSupportHelper\Logger::debug( 'modify_plugin_exporter called with ' . count( $exporters ) . ' exporters' );
@@ -66,7 +67,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 				\WooCommerceSupportHelper\Logger::info( 'Found ExportInstallPluginSteps, enabling private plugins' );
 				$exporter->include_private_plugins( true );
 
-				// Add a filter to only include plugins that are available via updaters
+				// Add a filter to only include plugins that are available via updaters.
 				$exporter->filter( array( $this, 'filter_available_plugins' ) );
 			}
 		}
@@ -76,7 +77,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Filter plugins to only include those available via updaters.
 	 *
-	 * @param array $plugins List of plugins from wp_get_plugins()
+	 * @param array $plugins List of plugins from wp_get_plugins().
 	 * @return array Filtered list of plugins
 	 */
 	public function filter_available_plugins( $plugins ) {
@@ -91,7 +92,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 				$slug = pathinfo( $path )['filename'];
 			}
 
-			// Check if this plugin is available via updaters
+			// Check if this plugin is available via updaters.
 			if ( $this->is_plugin_available_via_updater( $slug, $plugin ) ) {
 				$available_plugins[ $path ] = $plugin;
 				\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} ({$slug}) is available via updater" );
@@ -107,30 +108,30 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Check if a plugin is available via updaters.
 	 *
-	 * @param string $slug Plugin slug
-	 * @param array  $plugin Plugin data
+	 * @param string $slug Plugin slug.
+	 * @param array  $plugin Plugin data.
 	 * @return bool True if plugin is available via updaters
 	 */
 	private function is_plugin_available_via_updater( $slug, $plugin ) {
-		// Check if we're in staging or local environment
+		// Check if we're in staging or local environment.
 		$environment         = defined( 'WP_ENVIRONMENT_TYPE' ) ? WP_ENVIRONMENT_TYPE : '';
 		$is_staging_or_local = in_array( $environment, array( 'staging', 'local', 'development' ) );
 
 		if ( $is_staging_or_local ) {
 			\WooCommerceSupportHelper\Logger::debug( "Environment detected as {$environment} - including all plugins" );
-			return true; // Include all plugins in staging/local environments
+			return true; // Include all plugins in staging/local environments.
 		}
 
-		// Always include WordPress.org plugins
+		// Always include WordPress.org plugins.
 		$info = $this->get_plugin_info( $slug );
 		if ( isset( $info->download_link ) ) {
 			\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} is available on WordPress.org" );
 			return true;
 		}
 
-		// Check if it's a WooCommerce.com plugin
+		// Check if it's a WooCommerce.com plugin.
 		if ( $this->is_woocommerce_com_plugin( $plugin ) ) {
-			// For WooCommerce.com plugins, check subscription
+			// For WooCommerce.com plugins, check subscription.
 			$has_subscription = $this->has_woocommerce_com_subscription( $plugin );
 			if ( $has_subscription ) {
 				\WooCommerceSupportHelper\Logger::debug( "WooCommerce.com plugin {$plugin['Name']} has valid subscription" );
@@ -141,7 +142,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		// Not a WooCommerce.com plugin and not on WordPress.org
+		// Not a WooCommerce.com plugin and not on WordPress.org.
 		\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} is not a WooCommerce.com plugin and not on WordPress.org - excluding" );
 		return false;
 	}
@@ -149,7 +150,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Get plugin information from WordPress.org API.
 	 *
-	 * @param string $slug Plugin slug
+	 * @param string $slug Plugin slug.
 	 * @return object|WP_Error Plugin information or error
 	 */
 	private function get_plugin_info( $slug ) {
@@ -171,17 +172,17 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Check if a plugin is a WooCommerce.com plugin.
 	 *
-	 * @param array $plugin Plugin data
+	 * @param array $plugin Plugin data.
 	 * @return bool True if it's a WooCommerce.com plugin
 	 */
-	private function is_woocommerce_com_plugin($plugin) {
-        return isset($plugin['Woo']) && !empty($plugin['Woo']);
+	private function is_woocommerce_com_plugin( $plugin ) {
+		return isset( $plugin['Woo'] ) && ! empty( $plugin['Woo'] );
 	}
 
 	/**
 	 * Check if a WooCommerce.com plugin has an active subscription.
 	 *
-	 * @param array $plugin Plugin data
+	 * @param array $plugin Plugin data.
 	 * @return bool True if it has an active subscription
 	 */
 	private function has_woocommerce_com_subscription( $plugin ) {
@@ -209,7 +210,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 
 		// Check for an active subscription.
 		foreach ( $subscriptions as $subscription ) {
-			if ( $subscription['product_id'] != $product_id ) {
+			if ( $subscription['product_id'] !== $product_id ) {
 				continue;
 			}
 
@@ -227,7 +228,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Check if a plugin has a custom update source.
 	 *
-	 * @param array $plugin Plugin data
+	 * @param array $plugin Plugin data.
 	 * @return bool True if it has a custom update source
 	 */
 	private function has_custom_update_source( $plugin ) {
@@ -252,8 +253,8 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Modify the plugin list to include only available private plugins.
 	 *
-	 * @param array $settings
-	 * @return array
+	 * @param array $settings Settings array.
+	 * @return array Modified settings array.
 	 */
 	public function modify_plugin_list( $settings ) {
 		\WooCommerceSupportHelper\Logger::debug( 'modify_plugin_list called' );
@@ -287,7 +288,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	/**
 	 * Get all plugins that are available via updaters for export.
 	 *
-	 * @return array
+	 * @return array Available plugins for export.
 	 */
 	private function get_available_plugins_for_export() {
 		$all_plugins       = get_plugins();

@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Main class for the Blueprint Exporter module
+ * Main class for the Blueprint Exporter module.
  */
 class Blueprint_Exporter {
 	/**
@@ -31,14 +31,14 @@ class Blueprint_Exporter {
 	private $exporters = array();
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 */
 	public function __construct() {
 		$this->init_exporters();
 	}
 
 	/**
-	 * Initialize all exporters
+	 * Initialize all exporters.
 	 */
 	private function init_exporters() {
 		// Initialize the private plugin exporter.
@@ -50,7 +50,7 @@ class Blueprint_Exporter {
 	}
 
 	/**
-	 * Initialize WordPress and WooCommerce hooks
+	 * Initialize WordPress and WooCommerce hooks.
 	 */
 	private function init_hooks() {
 		// Hook into WooCommerce Blueprint exporters.
@@ -64,7 +64,7 @@ class Blueprint_Exporter {
 	}
 
 	/**
-	 * Get all registered exporters
+	 * Get all registered exporters.
 	 *
 	 * @return array
 	 */
@@ -100,7 +100,7 @@ class Blueprint_Exporter {
 	 * Modify the plugin exporter to enable private plugin exports.
 	 *
 	 * @param array $exporters The array of exporters to modify.
-	 * @return array The modified array of exporters.
+	 * @return array The modified array of exporters
 	 */
 	public function modify_plugin_exporter( $exporters ) {
 		if ( $this->private_plugin_exporter ) {
@@ -153,7 +153,7 @@ class Blueprint_Exporter {
 					'permission_callback' => array( $this, 'check_export_permission' ),
 					'args'                => array(
 						'steps' => array(
-							'description' => __( 'A list of plugins to install', 'woocommerce' ),
+							'description' => __( 'A list of plugins to install', 'woocommerce-support-helper' ),
 							'type'        => 'object',
 							'properties'  => array(
 								'settings' => array(
@@ -196,7 +196,7 @@ class Blueprint_Exporter {
 
 		$steps = $this->steps_payload_to_blueprint_steps( $payload );
 
-		// Use our custom ExportSchema instead of the default one
+		// Use our custom ExportSchema instead of the default one.
 		if ( class_exists( '\WooCommerceSupportHelper\BlueprintExporter\Custom_Export_Schema' ) ) {
 			$exporter = new Custom_Export_Schema();
 		} else {
@@ -240,12 +240,12 @@ class Blueprint_Exporter {
 			return new \WP_REST_Response( $data, 400 );
 		}
 
-		// Try to return the data in the same format as WooCommerce's original handler
+		// Try to return the data in the same format as WooCommerce's original handler.
 		if ( is_wp_error( $data ) ) {
 			return new \WP_REST_Response( $data, 400 );
 		}
 
-		// Return as JSON response similar to WooCommerce's original format
+		// Return as JSON response similar to WooCommerce's original format.
 		return new \WP_REST_Response(
 			array(
 				'data' => $data,
@@ -256,7 +256,7 @@ class Blueprint_Exporter {
 
 	/**
 	 * Convert step list from the frontend to the backend format.
-	 * Copied from WooCommerce's RestApi class
+	 * Copied from WooCommerce's RestApi class.
 	 *
 	 * @param array $steps steps payload from the frontend.
 	 * @return array
@@ -265,12 +265,12 @@ class Blueprint_Exporter {
 
 		$blueprint_steps = array();
 
-		// Handle general settings
+		// Handle general settings.
 		if ( isset( $steps['settings'] ) && count( $steps['settings'] ) > 0 ) {
 			$blueprint_steps = array_merge( $blueprint_steps, $steps['settings'] );
 		}
 
-		// Handle plugin installations
+		// Handle plugin installations.
 		if ( isset( $steps['plugins'] ) && count( $steps['plugins'] ) > 0 ) {
 			\WooCommerceSupportHelper\Logger::info(
 				'🔍 Found plugins in payload',
@@ -282,31 +282,31 @@ class Blueprint_Exporter {
 			$blueprint_steps[] = 'installPlugin';
 		}
 
-		// Handle theme installations
+		// Handle theme installations.
 		if ( isset( $steps['themes'] ) && count( $steps['themes'] ) > 0 ) {
 			$blueprint_steps[] = 'installTheme';
 		}
 
-		// Allow other modules to add their steps to the blueprint
+		// Allow other modules to add their steps to the blueprint.
 		$blueprint_steps = apply_filters( 'wc_support_helper_payload_contains_steps', $blueprint_steps, $steps );
 
 		return $blueprint_steps;
 	}
 
 	/**
-	 * Check export permission (copied from WooCommerce's RestApi class)
+	 * Check export permission (copied from WooCommerce's RestApi class).
 	 *
 	 * @return bool|\WP_Error
 	 */
 	public function check_export_permission() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			return new \WP_Error( 'woocommerce_rest_cannot_view', __( 'Sorry, you cannot export WooCommerce Blueprints.', 'woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
+			return new \WP_Error( 'woocommerce_rest_cannot_view', __( 'Sorry, you cannot export WooCommerce Blueprints.', 'woocommerce-support-helper' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		return true;
 	}
 
 	/**
-	 * Get module information
+	 * Get module information.
 	 *
 	 * @return array
 	 */
