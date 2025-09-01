@@ -1,43 +1,44 @@
 <?php
-namespace WooCommerceSupportHelper\BlueprintExporter;
-
 /**
- * Abstract base class for exporters
+ * Abstract Exporter Class
  *
  * @package WooCommerceSupportHelper\BlueprintExporter
+ * @since 1.0.0
  */
 
-if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+namespace WooCommerceSupportHelper\BlueprintExporter;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
 /**
  * Abstract base class for all exporters
  */
 abstract class Abstract_Exporter {
-    /**
-     * Initialize the exporter
-     */
-    abstract public function init();
+	/**
+	 * Initialize the exporter
+	 */
+	abstract public function init();
 
-    /**
-     * Get the exporter name
-     *
-     * @return string
-     */
-    abstract public function get_name();
+	/**
+	 * Get the exporter name
+	 *
+	 * @return string
+	 */
+	abstract public function get_name();
 
-    /**
-     * Get the exporter description
-     *
-     * @return string
-     */
-    abstract public function get_description();
+	/**
+	 * Get the exporter description
+	 *
+	 * @return string
+	 */
+	abstract public function get_description();
 
-    /**
-     * Get the data to export
-     *
-     * @return array
-     */
-    abstract public function get_data();
-} 
+	/**
+	 * Get the data to export
+	 *
+	 * @return array
+	 */
+	abstract public function get_data();
+}
