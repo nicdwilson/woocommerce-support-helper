@@ -66,11 +66,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		$site_options = $this->get_site_options();
 
 		Logger::info(
-			'🇦🇺 Australia Post Exporter: Export completed',
-			array(
-				'site_options_count' => count( $site_options ),
-				'site_options_keys'  => array_keys( $site_options ),
-			)
+			'Australia Post Exporter: Export completed'
 		);
 
 		// Create a step to set these options.
@@ -90,11 +86,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		if ( ! empty( $global_settings ) ) {
 			$site_options['woocommerce_australia_post_settings'] = $this->sanitize_settings( $global_settings );
 			Logger::debug(
-				'🇦🇺 Found global Australia Post settings',
-				array(
-					'settings_count' => count( $global_settings ),
-					'settings_keys'  => array_keys( $global_settings ),
-				)
+				'Found global Australia Post settings',
 			);
 		}
 
@@ -102,11 +94,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		$shipping_zones = $this->get_shipping_zones_with_australia_post();
 
 		Logger::debug(
-			'🇦🇺 Found shipping zones with Australia Post',
-			array(
-				'shipping_zones_count' => count( $shipping_zones ),
-				'shipping_zones_keys'  => array_keys( $shipping_zones ),
-			)
+			'Found shipping zones with Australia Post',
 		);
 
 		foreach ( $shipping_zones as $zone ) {
@@ -369,14 +357,6 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 			return false;
 		}
 
-		if ( ! current_user_can( 'edit_posts' ) ) {
-			return false;
-		}
-
-		if ( ! current_user_can( 'edit_users' ) ) {
-			return false;
-		}
-
-			return true;
+		return true;
 	}
 }
