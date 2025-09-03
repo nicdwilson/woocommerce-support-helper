@@ -13,21 +13,49 @@ const SupportHelperPanelSimple = () => {
         setMessage('Testing export functionality...');
         
         try {
-            // Test if the API endpoint is available
-            const response = await fetch((window.wcSupportHelper ? window.wcSupportHelper.apiUrl : '') + 'export', {
+            // Use WooCommerce's blueprint export endpoint directly
+            const response = await fetch('/wp-json/wc-admin/blueprint/export?_locale=user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce': window.wcSupportHelper ? window.wcSupportHelper.nonce : ''
                 },
-                body: JSON.stringify({ type: 'blueprint' })
+                body: JSON.stringify({
+                    steps: {
+                        settings: [
+                            "setWCSettingsGeneral",
+                            "setWCSettingsProducts", 
+                            "setWCSettingsTax",
+                            "setWCShipping",
+                            "wcPaymentGateways",
+                            "setWCSettingsAccount",
+                            "setWCSettingsEmails",
+                            "setWCSettingsIntegrations",
+                            "setWCSettingsSiteVisibility",
+                            "setWCSettingsAdvanced"
+                        ],
+                        plugins: [
+                            "woocommerce-pinterest/woocommerce-pinterest.php",
+                            "pu2-devtools-trunk/pu2-devtools.php",
+                            "woocommerce/woocommerce.php",
+                            "woocommerce-gateway-stripe/woocommerce-gateway-stripe.php",
+                            "woocommerce-support-helper/woocommerce-support-helper.php",
+                            "woocommerce-shipping-usps/woocommerce-shipping-usps.php",
+                            "woocommerce-payments/woocommerce-payments.php",
+                            "wp-crontrol/wp-crontrol.php"
+                        ],
+                        themes: ["storefront"],
+                        plugin_settings: ["woocommerce-shipping-usps"]
+                    }
+                })
             });
             
             if (response.ok) {
                 const data = await response.json();
-                setMessage(`Export successful! Download URL: ${data.download_url}`);
+                setMessage(`Export successful! Response: ${JSON.stringify(data, null, 2)}`);
             } else {
-                setMessage(`Export failed with status: ${response.status}`);
+                const errorData = await response.json();
+                setMessage(`Export failed with status: ${response.status} - ${errorData.message || 'Unknown error'}`);
             }
         } catch (error) {
             setMessage(`Error: ${error.message}`);
