@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Helper Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f0f0f1;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .mock-activity-panel {
+            border: 2px solid #007cba;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        .mock-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mock-tab {
+            padding: 10px 15px;
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .mock-tab.active {
+            background: #007cba;
+            color: white;
+        }
+        .mock-content {
+            min-height: 200px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Support Helper React Integration Test</h1>
+        
+        <div id="test-status">
+            <div class="status info">Initializing test...</div>
+        </div>
+
+        <div class="mock-activity-panel">
+            <h3>Mock WooCommerce Activity Panel</h3>
+            <div class="mock-tabs" id="mock-tabs">
+                <div class="mock-tab active" data-panel="inbox">Inbox</div>
+                <div class="mock-tab" data-panel="reviews">Reviews</div>
+                <div class="mock-tab" data-panel="help">Help</div>
+            </div>
+            <div class="mock-content" id="mock-content">
+                <p>Select a tab to see content...</p>
+            </div>
+        </div>
+
+        <div id="console-output">
+            <h3>Console Output</h3>
+            <div id="console-log"></div>
+        </div>
+    </div>
+
+    <!-- Load React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Load WordPress components -->
+    <script>
+        window.wp = {
+            components: {},
+            i18n: {
+                __: function(text) { return text; }
+            }
+        };
+        window.wc = {
+            components: {}
+        };
+    </script>
+
+    <!-- Load our React components -->
+    <script src="includes/support-admin-ui/assets/js/dist/register-panel.min.js"></script>
+
+    <script>
+        // Override console.log to capture output
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        const consoleLog = document.getElementById('console-log');
+        
+        function addLogEntry(type, message) {
+            const entry = document.createElement('div');
+            entry.className = `status ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleLog.appendChild(entry);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLogEntry('success', args.join(' '));
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addLogEntry('warning', args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLogEntry('error', args.join(' '));
+        };
+
+        // Mock WooCommerce activity panel
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('test-status');
+            statusDiv.innerHTML = '<div class="status success">Test page loaded successfully</div>';
+            
+            // Create mock activity panel structure
+            const mockPanel = document.createElement('div');
+            mockPanel.id = 'woocommerce-activity-panel';
+            mockPanel.style.display = 'none';
+            document.body.appendChild(mockPanel);
+            
+            const tabsContainer = document.createElement('div');
+            tabsContainer.className = 'woocommerce-layout__activity-panel-tabs';
+            mockPanel.appendChild(tabsContainer);
+            
+            const panelWrapper = document.createElement('div');
+            panelWrapper.className = 'woocommerce-layout__activity-panel-wrapper';
+            mockPanel.appendChild(panelWrapper);
+            
+            // Show the mock panel after a delay
+            setTimeout(() => {
+                mockPanel.style.display = 'block';
+                console.log('Mock WooCommerce activity panel created');
+            }, 1000);
+        });
+
+        // Mock tab functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('mock-tab')) {
+                // Remove active class from all tabs
+                document.querySelectorAll('.mock-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab
+                e.target.classList.add('active');
+                
+                // Update content
+                const content = document.getElementById('mock-content');
+                content.innerHTML = `<p>Content for ${e.target.textContent} panel</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

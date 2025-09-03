@@ -31,6 +31,9 @@ define( 'WC_SUPPORT_HELPER_URL', plugin_dir_url( __FILE__ ) );
 // Load Composer autoloader.
 require_once WC_SUPPORT_HELPER_PATH . 'vendor/autoload.php';
 
+// Include the REST API
+require_once WC_SUPPORT_HELPER_PATH . 'includes/class-support-helper-api.php';
+
 /**
  * Main plugin class.
  *
