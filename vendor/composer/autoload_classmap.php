@@ -696,6 +696,7 @@ return array(
     'WooCommerceSupportHelper\\Module_Loader' => $baseDir . '/includes/class-module-loader.php',
     'WooCommerceSupportHelper\\Shipping_Methods_Exporter' => $baseDir . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
     'WooCommerceSupportHelper\\SupportAdminUI\\Support_Admin_UI' => $baseDir . '/includes/support-admin-ui/class-support-admin-ui.php',
+    'WooCommerceSupportHelper\\WC_Support_Helper_API' => $baseDir . '/includes/class-support-helper-api.php',
     'WooCommerceSupportHelper\\WooCommerce_Shipping_Australia_Post' => $baseDir . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-woocommerce-shipping-australia-post.php',
     'WooCommerceSupportHelper\\WooCommerce_Shipping_Usps' => $baseDir . '/includes/shipping-methods-exporter/woocommerce-shipping-usps/class-woocommerce-shipping-usps.php',
 );
