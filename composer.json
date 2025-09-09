@@ -23,7 +23,7 @@
             "includes/shipping-methods-exporter/woocommerce-shipping-royalmail/",
             "includes/shipping-methods-exporter/woocommerce-shipping-ups/",
             "includes/shipping-methods-exporter/woocommerce-shipping-usps/",
-            "includes/shipping-methods-exporter/woocommerce-table-rate-shipping/",
+            "includes/shipping-methods-exporter/woocommerce-table-rate-shipping/"
         ]
     },
     "autoload-dev": {
