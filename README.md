@@ -48,10 +48,6 @@ The plugin uses a modular architecture where each major feature is organized int
 - Supports multiple shipping providers (Australia Post, FedEx, Royal Mail, UPS, USPS)
 - Integrates with WooCommerce Blueprint system
 
-#### Support Admin UI (`includes/support-admin-ui/`)
-- Adds export functionality to WooCommerce help screens
-- Provides comprehensive export options for support purposes
-- Integrates with existing exporter modules
 
 ### Adding New Modules
 
@@ -68,7 +64,6 @@ To add a new module:
 
 - Composer
 - PHP 7.4 or higher
-- Node.js and npm (for frontend development)
 
 ### Setup
 
@@ -95,12 +90,6 @@ woocommerce-support-helper/
 │   ├── shipping-methods-exporter/     # Shipping Methods Exporter module
 │   │   ├── class-shipping-methods-exporter.php # Main module class
 │   │   └── README.md                  # Module documentation
-│   └── support-admin-ui/              # Support Admin UI module
-│       ├── class-support-admin-ui.php # Main module class
-│       ├── assets/                    # Frontend assets
-│       │   ├── js/admin.js            # JavaScript functionality
-│       │   └── css/admin.css          # Styling
-│       └── README.md                  # Module documentation
 ├── tests/                             # Test files
 │   ├── test-instantiate.php          # Class instantiation tests
 │   ├── test-simple.php               # Basic functionality tests

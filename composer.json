@@ -24,7 +24,6 @@
             "includes/shipping-methods-exporter/woocommerce-shipping-ups/",
             "includes/shipping-methods-exporter/woocommerce-shipping-usps/",
             "includes/shipping-methods-exporter/woocommerce-table-rate-shipping/",
-            "includes/support-admin-ui/"
         ]
     },
     "autoload-dev": {
