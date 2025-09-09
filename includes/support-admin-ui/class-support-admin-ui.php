@@ -73,7 +73,7 @@ class Support_Admin_UI {
 			'wc-support-helper-react',
 			'wcSupportHelper',
 			array(
-				'apiUrl' => rest_url( 'woocommerce-support-helper/v1/' ),
+				'apiUrl'  => rest_url( 'woocommerce-support-helper/v1/' ),
 				'nonce'   => wp_create_nonce( 'wp_rest' ),
 				'strings' => array(
 					'generating' => __( 'Generating export...', 'woocommerce-support-helper' ),
@@ -91,7 +91,7 @@ class Support_Admin_UI {
 	 */
 	private function is_woocommerce_admin_page() {
 		$screen = get_current_screen();
-		
+
 		if ( ! $screen ) {
 			return false;
 		}
@@ -115,13 +115,13 @@ class Support_Admin_UI {
 	 * @return Support_Admin_UI|null The instance of the Support Admin UI class, or null if not available.
 	 */
 	public static function get_instance() {
-		$module_loader = \WooCommerceSupportHelper\WC_Support_Helper::instance()->get_module_loader();
+		$module_loader    = \WooCommerceSupportHelper\WC_Support_Helper::instance()->get_module_loader();
 		$support_admin_ui = $module_loader->get_module( 'support_admin_ui' );
-		
+
 		if ( $support_admin_ui instanceof self ) {
 			return $support_admin_ui;
 		}
-		
+
 		return null;
 	}
 
