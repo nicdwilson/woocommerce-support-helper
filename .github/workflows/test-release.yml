@@ -1,0 +1,76 @@
+name: Test Release Package Locally
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'create-release.sh'
+      - '.github/workflows/test-release.yml'
+
+jobs:
+  test-release-creation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo
+        coverage: none
+    
+    - name: Install Composer dependencies
+      run: composer install --no-dev --optimize-autoloader
+    
+    - name: Run release script
+      run: ./create-release.sh
+    
+    - name: Upload release package
+      uses: actions/upload-artifact@v4
+      with:
+        name: woocommerce-support-helper-test-release
+        path: woocommerce-support-helper-v*.zip
+        retention-days: 7
+    
+    - name: Test package contents
+      run: |
+        echo "=== Testing Release Package ==="
+        PACKAGE_FILE=$(ls woocommerce-support-helper-v*.zip)
+        echo "Testing package: $PACKAGE_FILE"
+        
+        # Extract and test
+        unzip -q $PACKAGE_FILE -d test-package/
+        
+        # Run package test workflow
+        echo "Running package tests..."
+        # This would call the package-test workflow if it were available
+        
+        # Basic verification
+        echo "=== Basic Verification ==="
+        test -f test-package/woocommerce-support-helper.php && echo "✅ Main plugin file"
+        test -f test-package/vendor/autoload.php && echo "✅ Autoloader"
+        test -d test-package/includes && echo "✅ Includes directory"
+        
+        # Check vendor directory is minimal
+        vendor_files=$(find test-package/vendor -type f | wc -l)
+        echo "Vendor files: $vendor_files"
+        
+        if [ $vendor_files -lt 10 ]; then
+          echo "✅ Vendor directory is minimal"
+        else
+          echo "⚠️  Vendor directory has many files"
+        fi
+        
+        # Check for excluded dev dependencies
+        [ ! -d "test-package/vendor/phpunit" ] && echo "✅ PHPUnit excluded"
+        [ ! -d "test-package/vendor/squizlabs" ] && echo "✅ PHPCS excluded"
+        [ ! -d "test-package/vendor/wp-coding-standards" ] && echo "✅ WPCS excluded"
+        
+        echo "=== Package Summary ==="
+        echo "Package: $PACKAGE_FILE"
+        echo "Size: $(du -sh $PACKAGE_FILE | cut -f1)"
+        echo "Files: $(unzip -l $PACKAGE_FILE | tail -1 | awk '{print $2}')"

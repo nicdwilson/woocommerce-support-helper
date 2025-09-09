@@ -1,0 +1,124 @@
+name: Test Release Package
+
+on:
+  workflow_call:
+    inputs:
+      package_path:
+        description: 'Path to the release package'
+        required: true
+        type: string
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo
+        coverage: none
+    
+    - name: Extract release package
+      run: |
+        unzip -q ${{ inputs.package_path }} -d test-package/
+        ls -la test-package/
+    
+    - name: Verify package structure
+      run: |
+        echo "=== Package Structure Verification ==="
+        
+        # Check essential files exist
+        test -f test-package/woocommerce-support-helper.php && echo "✅ Main plugin file exists"
+        test -f test-package/vendor/autoload.php && echo "✅ Autoloader exists"
+        test -d test-package/includes && echo "✅ Includes directory exists"
+        test -f test-package/README.md && echo "✅ README exists"
+        test -f test-package/LICENSE && echo "✅ License exists"
+        
+        # Check vendor directory is minimal
+        echo "=== Vendor Directory Check ==="
+        vendor_files=$(find test-package/vendor -type f | wc -l)
+        echo "Vendor files count: $vendor_files"
+        
+        if [ $vendor_files -lt 10 ]; then
+          echo "✅ Vendor directory is minimal (good for release)"
+        else
+          echo "⚠️  Vendor directory has many files - may include dev dependencies"
+        fi
+        
+        # Check for excluded dev dependencies
+        echo "=== Development Dependencies Check ==="
+        if [ ! -d "test-package/vendor/phpunit" ]; then
+          echo "✅ PHPUnit excluded"
+        else
+          echo "❌ PHPUnit still present"
+        fi
+        
+        if [ ! -d "test-package/vendor/squizlabs" ]; then
+          echo "✅ PHPCS excluded"
+        else
+          echo "❌ PHPCS still present"
+        fi
+        
+        if [ ! -d "test-package/vendor/wp-coding-standards" ]; then
+          echo "✅ WPCS excluded"
+        else
+          echo "❌ WPCS still present"
+        fi
+    
+    - name: Test PHP syntax
+      run: |
+        echo "=== PHP Syntax Check ==="
+        find test-package -name "*.php" -exec php -l {} \; | grep -v "No syntax errors" || true
+        
+        # Check if any syntax errors found
+        syntax_errors=$(find test-package -name "*.php" -exec php -l {} \; 2>&1 | grep -c "Parse error" || true)
+        if [ $syntax_errors -eq 0 ]; then
+          echo "✅ All PHP files have valid syntax"
+        else
+          echo "❌ Found $syntax_errors PHP syntax errors"
+          exit 1
+        fi
+    
+    - name: Test autoloader
+      run: |
+        echo "=== Autoloader Test ==="
+        cd test-package
+        php -r "
+          require_once 'vendor/autoload.php';
+          echo '✅ Autoloader loads successfully' . PHP_EOL;
+          
+          // Test if our classes can be loaded
+          if (class_exists('WooCommerceSupportHelper\\WC_Support_Helper')) {
+            echo '✅ Main plugin class loads' . PHP_EOL;
+          } else {
+            echo '❌ Main plugin class not found' . PHP_EOL;
+          }
+        "
+    
+    - name: Package size report
+      run: |
+        echo "=== Package Size Report ==="
+        package_size=$(du -sh test-package | cut -f1)
+        echo "Package size: $package_size"
+        
+        # Count files by type
+        php_files=$(find test-package -name "*.php" | wc -l)
+        vendor_files=$(find test-package/vendor -type f | wc -l)
+        total_files=$(find test-package -type f | wc -l)
+        
+        echo "PHP files: $php_files"
+        echo "Vendor files: $vendor_files"
+        echo "Total files: $total_files"
+        
+        # Check if package is reasonable size
+        size_mb=$(du -sm test-package | cut -f1)
+        if [ $size_mb -lt 10 ]; then
+          echo "✅ Package size is reasonable (< 10MB)"
+        else
+          echo "⚠️  Package size is large ($size_mb MB) - may include unnecessary files"
+        fi

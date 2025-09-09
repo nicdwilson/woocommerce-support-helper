@@ -1,0 +1,145 @@
+name: Create Release Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  create-release-package:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo
+        coverage: none
+    
+    - name: Install Composer dependencies
+      run: composer install --no-dev --optimize-autoloader
+    
+    - name: Create release directory
+      run: mkdir -p release-package
+    
+    - name: Copy essential files
+      run: |
+        # Copy main plugin file
+        cp woocommerce-support-helper.php release-package/
+        
+        # Copy includes directory
+        cp -r includes release-package/
+        
+        # Copy minimal autoloader
+        mkdir -p release-package/vendor
+        cp create-minimal-autoloader.php release-package/vendor/autoload.php
+        
+        # Copy documentation
+        cp README.md release-package/
+        cp LICENSE release-package/
+        cp RELEASE_NOTES_v1.0.0.md release-package/ 2>/dev/null || echo "Release notes not found, skipping"
+        
+        # Copy composer files for reference
+        cp composer.json release-package/
+        cp composer.lock release-package/
+        
+        # Copy coding standards config
+        cp phpcs.xml release-package/
+    
+    - name: Create .gitignore for release
+      run: |
+        cat > release-package/.gitignore << 'EOF'
+        # Development dependencies
+        vendor/phpunit/
+        vendor/sebastian/
+        vendor/phar-io/
+        vendor/theseer/
+        vendor/squizlabs/
+        vendor/wp-coding-standards/
+        vendor/phpcsstandards/
+        vendor/dealerdirect/
+        vendor/nikic/
+        vendor/doctrine/
+        vendor/myclabs/
+        vendor/composer/bin/
+        vendor/composer/installers/
+        
+        # Keep only essential files
+        !vendor/autoload.php
+        !vendor/composer/autoload_*.php
+        !vendor/composer/ClassLoader.php
+        !vendor/composer/InstalledVersions.php
+        
+        # Development files
+        .github/
+        .git/
+        tests/
+        node_modules/
+        *.log
+        .DS_Store
+        Thumbs.db
+        EOF
+    
+    - name: Verify package structure
+      run: |
+        echo "=== Package Contents ==="
+        find release-package -type f | head -20
+        echo "..."
+        echo "Total files: $(find release-package -type f | wc -l)"
+        echo "Package size: $(du -sh release-package | cut -f1)"
+        
+        echo "=== Essential Files Check ==="
+        test -f release-package/woocommerce-support-helper.php && echo "✅ Main plugin file"
+        test -f release-package/vendor/autoload.php && echo "✅ Autoloader"
+        test -d release-package/includes && echo "✅ Includes directory"
+        test -f release-package/README.md && echo "✅ README"
+        test -f release-package/LICENSE && echo "✅ License"
+    
+    - name: Create release zip
+      run: |
+        cd release-package
+        zip -r ../woocommerce-support-helper.zip . -x "*.git*" "*.DS_Store*" "Thumbs.db"
+        cd ..
+        echo "Release package created: woocommerce-support-helper.zip"
+        ls -lh woocommerce-support-helper.zip
+    
+    - name: Upload release artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: woocommerce-support-helper-release
+        path: woocommerce-support-helper.zip
+        retention-days: 30
+    
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: woocommerce-support-helper.zip
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Output package info
+      run: |
+        echo "=== Release Package Information ==="
+        echo "Package: woocommerce-support-helper.zip"
+        echo "Size: $(ls -lh woocommerce-support-helper.zip | awk '{print $5}')"
+        echo "Files: $(unzip -l woocommerce-support-helper.zip | tail -1 | awk '{print $2}')"
+        echo "Essential vendor files: $(unzip -l woocommerce-support-helper.zip | grep vendor | wc -l)"
+        echo ""
+        echo "=== Package Contents ==="
+        unzip -l woocommerce-support-helper.zip | head -20
