@@ -103,46 +103,35 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		// Get zone-specific settings with better error handling.
 		try {
 			$shipping_zones = $this->get_shipping_zones_with_usps();
-			Logger::info(
-				'🇺🇸 Shipping zones processing',
-				array(
-					'zones_found' => count( $shipping_zones ),
-					'zones_data'  => $shipping_zones,
-				)
+			
+			Logger::debug(
+				'Found shipping zones with USPS',
 			);
-
+	
 			foreach ( $shipping_zones as $zone ) {
 				$method_settings = $this->get_method_settings_for_zone( $zone );
 				if ( ! empty( $method_settings ) ) {
 					$option_name                  = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
 					$site_options[ $option_name ] = $this->sanitize_settings( $method_settings );
-					Logger::info(
-						'🇺🇸 Added zone settings',
+					Logger::debug(
+						'🇺🇸 Found method settings for zone',
 						array(
-							'zone_id'        => $zone['zone_id'],
-							'option_name'    => $option_name,
-							'settings_count' => count( $method_settings ),
-						)
-					);
-				} else {
-					Logger::warning(
-						'🇺🇸 No method settings found for zone',
-						array(
-							'zone_id'   => $zone['zone_id'],
-							'zone_name' => $zone['zone_name'],
+							'zone_id'            => $zone['zone_id'],
+							'zone_name'          => $zone['zone_name'],
+							'method_instance_id' => $zone['method_instance_id'],
+							'settings_count'     => count( $method_settings ),
 						)
 					);
 				}
 			}
+
 		} catch ( Exception $e ) {
 			Logger::error(
-				'🇺🇸 Error processing shipping zones',
+				'🇺🇸 Error getting shipping zones with USPS',
 				array(
-					'error'                   => $e->getMessage(),
-					'fallback_to_direct_scan' => true,
+					'error' => $e->getMessage(),
 				)
 			);
-
 		}
 
 		Logger::debug( '🇺🇸 Found ' . count( $site_options ) . ' USPS site options' );
@@ -158,74 +147,34 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 	public function get_shipping_zones_with_usps() {
 		$zones_with_usps = array();
 
-		// Try multiple approaches to get shipping zones.
-		if ( class_exists( 'WC_Shipping_Zones' ) ) {
-			// Primary method.
-			$shipping_zones = \WC_Shipping_Zones::get_zones();
+		$data_store = \WC_Data_Store::load( 'shipping-zone' );
 
-			// Add the "Rest of the World" zone (ID 0).
-			$shipping_zones[] = \WC_Shipping_Zones::get_zone( 0 );
+		$raw_zones = $data_store->get_zones();
+		foreach ( $raw_zones as $raw_zone ) {
+			$zones[] = new \WC_Shipping_Zone( $raw_zone );
+		}
+		$zones[] = new \WC_Shipping_Zone( 0 ); // ADD ZONE "0" MANUALLY.
 
-			foreach ( $shipping_zones as $zone ) {
-				if ( ! $zone || ! is_object( $zone ) ) {
-					continue;
-				}
-
-				$methods = $zone->get_shipping_methods();
-				foreach ( $methods as $method ) {
-					if ( $method->id === self::METHOD_ID && $method->is_enabled() ) {
-						$zones_with_usps[] = array(
-							'zone_id'            => $zone->get_id(),
-							'zone_name'          => $zone->get_zone_name(),
-							'method_instance_id' => $method->get_instance_id(),
-							'method_settings'    => $method->get_instance_option(),
-						);
-						Logger::info(
-							'🇺🇸 Found USPS method in zone',
-							array(
-								'zone_id'            => $zone->get_id(),
-								'zone_name'          => $zone->get_zone_name(),
-								'method_instance_id' => $method->get_instance_id(),
-							)
-						);
-					}
-				}
-			}
-		} elseif ( function_exists( 'wc_get_shipping_zones' ) ) {
-			// Alternative method.
-			$shipping_zones = wc_get_shipping_zones();
-			Logger::info(
-				'🇺🇸 Using wc_get_shipping_zones() fallback',
-				array(
-					'zones_count' => count( $shipping_zones ),
-				)
-			);
-
-			foreach ( $shipping_zones as $zone ) {
-				if ( isset( $zone['zone_id'] ) && isset( $zone['shipping_methods'] ) ) {
-					foreach ( $zone['shipping_methods'] as $method ) {
-						if ( $method['method_id'] === self::METHOD_ID && $method['is_enabled'] ) {
-							$zones_with_usps[] = array(
-								'zone_id'            => $zone['zone_id'],
-								'zone_name'          => $zone['zone_name'],
-								'method_instance_id' => $method['instance_id'],
-								'method_settings'    => $method['settings'] ?? array(),
-							);
-						}
-					}
-				}
-			}
-		} else {
-			Logger::warning( '🇺🇸 No WooCommerce shipping zone methods available' );
+		if ( ! empty( $zones ) ) {
+			Logger::debug( '🇺🇸 Found ' . count( $zones ) . ' shipping zones' );
 		}
 
-		Logger::info(
-			'🇺🇸 USPS zones detection completed',
-			array(
-				'zones_found' => count( $zones_with_usps ),
-				'zones_data'  => $zones_with_usps,
-			)
-		);
+		foreach ( $zones as $zone ) {
+				Logger::debug( '🇺🇸 Found zone ' . $zone->get_id() . ' ' . $zone->get_zone_name() );
+				$methods = $zone->get_shipping_methods();
+			foreach ( $methods as $method ) {
+				if ( $method->id === self::METHOD_ID ) {
+					Logger::debug( '🇺🇸 Found method ' . $method->id );
+					$zones_with_usps[] = array(
+						'zone_id'            => $zone->get_id(),
+						'zone_name'          => $zone->get_zone_name(),
+						'method_instance_id' => $method->get_instance_id(),
+					);
+				}
+			}
+		}
+
+		Logger::debug( '🇺🇸 Found ' . count( $zones_with_usps ) . ' zones with USPS' );
 
 		return $zones_with_usps;
 	}
