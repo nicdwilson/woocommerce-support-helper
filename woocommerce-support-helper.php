@@ -4,7 +4,7 @@
  * Plugin URI: https://happyplugins.com
  * Description: Extends WooCommerce Blueprint exporter with intelligent private plugin filtering. Only exports private plugins that are available via updaters (like WooCommerce.com extensions) to ensure successful blueprint imports.
  * Version: 1.0.0
- * Author: Happy Plugins
+ * Author: @nicw, WooCommerce Growth Team
  * Author URI: https://happyplugins.com
  * Text Domain: woocommerce-support-helper
  * Domain Path: /languages
