@@ -143,8 +143,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 				)
 			);
 
-			// Fallback: scan options directly.
-			$site_options = array_merge( $site_options, $this->scan_usps_options_directly() );
 		}
 
 		Logger::debug( '🇺🇸 Found ' . count( $site_options ) . ' USPS site options' );
@@ -261,6 +259,7 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		$sanitized = $settings;
 
 		// List of sensitive keys to sanitize.
+		// 'api_key' is not included in this list.
 		$sensitive_keys = array(
 			'user_id',
 			'password',
@@ -314,38 +313,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		return $zone_configurations;
 	}
 
-	/**
-	 * Scan for USPS options directly from the database as a fallback.
-	 *
-	 * @return array
-	 */
-	protected function scan_usps_options_directly() {
-		global $wpdb;
-		$options = array();
-
-		// Look for all USPS related options.
-		$usps_options = $wpdb->get_results(
-			"SELECT option_name, option_value FROM {$wpdb->options} 
-             WHERE option_name LIKE 'woocommerce_usps_%'"
-		);
-
-		foreach ( $usps_options as $option ) {
-			$option_value = maybe_unserialize( $option->option_value );
-			if ( ! empty( $option_value ) ) {
-				$options[ $option->option_name ] = $this->sanitize_settings( $option_value );
-				Logger::info(
-					'🇺🇸 Found USPS option directly',
-					array(
-						'option_name' => $option->option_name,
-						'value_type'  => gettype( $option_value ),
-						'is_array'    => is_array( $option_value ),
-					)
-				);
-			}
-		}
-
-		return $options;
-	}
 
 	/**
 	 * Get comprehensive method settings organized by category.

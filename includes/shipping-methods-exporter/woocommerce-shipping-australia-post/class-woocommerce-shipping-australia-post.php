@@ -60,7 +60,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 	 * @return Step
 	 */
 	public function export(): Step {
-		Logger::info( '🇦🇺 Australia Post Exporter: Starting real configuration export' );
+		Logger::info( '🇦🇺 Australia Post Exporter: Starting configuration export' );
 
 		// Get all Australia Post site options.
 		$site_options = $this->get_site_options();
@@ -269,55 +269,6 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		}
 
 		return $settings;
-	}
-
-	/**
-	 * Categorize settings into logical groups.
-	 *
-	 * @param array $settings Settings to categorize.
-	 * @return array Categorized settings
-	 */
-	private function categorize_settings( $settings ) {
-		$categorized = array(
-			'general'  => array(),
-			'packing'  => array(),
-			'services' => array(),
-			'advanced' => array(),
-		);
-
-		// Define key patterns for each category.
-		$packing_keys  = array( 'packing_method', 'box_packing', 'max_weight', 'box', 'letter' );
-		$service_keys  = array( 'service', 'satchel', 'rate', 'extra_cover', 'signature' );
-		$advanced_keys = array( 'tax', 'origin', 'debug', 'api' );
-
-		foreach ( $settings as $key => $value ) {
-			$key_lower = strtolower( $key );
-
-			if ( in_array( $key_lower, $packing_keys, true ) || strpos( $key_lower, 'pack' ) !== false ) {
-				$categorized['packing'][ $key ] = $value;
-			} elseif ( in_array( $key_lower, $service_keys, true ) || strpos( $key_lower, 'service' ) !== false ) {
-				$categorized['services'][ $key ] = $value;
-			} elseif ( in_array( $key_lower, $advanced_keys, true ) || strpos( $key_lower, 'api' ) !== false ) {
-				$categorized['advanced'][ $key ] = $value;
-			} else {
-				$categorized['general'][ $key ] = $value;
-			}
-		}
-
-		return $categorized;
-	}
-
-	/**
-	 * Get full export data including all Australia Post configuration.
-	 *
-	 * @return array
-	 */
-	public function export_data() {
-		return array(
-			'site_options'    => $this->get_site_options(),
-			'shipping_zones'  => $this->get_shipping_zone_configurations(),
-			'method_settings' => $this->get_method_settings(),
-		);
 	}
 
 	/**
