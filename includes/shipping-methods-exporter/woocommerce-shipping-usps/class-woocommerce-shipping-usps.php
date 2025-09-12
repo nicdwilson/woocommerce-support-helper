@@ -172,7 +172,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		$sanitized = $settings;
 
 		// List of sensitive keys to sanitize.
-		// 'api_key' is not included in this list.
 		$sensitive_keys = array(
 			'user_id',
 			'password',
@@ -182,6 +181,13 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 			'private_key',
 			'api_key',
 			'api_secret',
+			'account_number',
+			'access_key',
+			'username',
+			'key',
+			'account',
+			'client_id',
+			'client_secret',
 		);
 
 		// Sanitize sensitive keys.

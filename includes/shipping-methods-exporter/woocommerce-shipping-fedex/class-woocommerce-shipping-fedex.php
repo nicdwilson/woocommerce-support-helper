@@ -181,6 +181,9 @@ class WooCommerce_Shipping_Fedex implements StepExporter, HasAlias {
 			'meter_number',
 			'key',
 			'account',
+			'client_id',
+			'client_secret',
+			'api_pass',
 		);
 
 		// Sanitize sensitive keys.

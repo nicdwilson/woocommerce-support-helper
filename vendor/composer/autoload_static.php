@@ -139,6 +139,8 @@ class ComposerStaticInit4b7a21fc1814f7aa75903bee8d76e645
         'WooCommerceSupportHelper\\Shipping_Methods_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
         'WooCommerceSupportHelper\\WC_Support_Helper_API' => __DIR__ . '/../..' . '/includes/class-support-helper-api.php',
         'WooCommerceSupportHelper\\WooCommerce_Shipping_Australia_Post' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-woocommerce-shipping-australia-post.php',
+        'WooCommerceSupportHelper\\WooCommerce_Shipping_Fedex' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-fedex/class-woocommerce-shipping-fedex.php',
+        'WooCommerceSupportHelper\\WooCommerce_Shipping_Ups' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-ups/class-woocommerce-shipping-ups.php',
         'WooCommerceSupportHelper\\WooCommerce_Shipping_Usps' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-usps/class-woocommerce-shipping-usps.php',
     );
 

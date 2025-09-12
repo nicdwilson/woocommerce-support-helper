@@ -168,6 +168,15 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 			'token',
 			'auth_key',
 			'private_key',
+			'user_id',
+			'api_secret',
+			'account_number',
+			'access_key',
+			'username',
+			'key',
+			'account',
+			'client_id',
+			'client_secret',
 		);
 
 		// Sanitize sensitive keys.

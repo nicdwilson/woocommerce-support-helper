@@ -116,5 +116,7 @@ return array(
     'WooCommerceSupportHelper\\Shipping_Methods_Exporter' => $baseDir . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
     'WooCommerceSupportHelper\\WC_Support_Helper_API' => $baseDir . '/includes/class-support-helper-api.php',
     'WooCommerceSupportHelper\\WooCommerce_Shipping_Australia_Post' => $baseDir . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-woocommerce-shipping-australia-post.php',
+    'WooCommerceSupportHelper\\WooCommerce_Shipping_Fedex' => $baseDir . '/includes/shipping-methods-exporter/woocommerce-shipping-fedex/class-woocommerce-shipping-fedex.php',
+    'WooCommerceSupportHelper\\WooCommerce_Shipping_Ups' => $baseDir . '/includes/shipping-methods-exporter/woocommerce-shipping-ups/class-woocommerce-shipping-ups.php',
     'WooCommerceSupportHelper\\WooCommerce_Shipping_Usps' => $baseDir . '/includes/shipping-methods-exporter/woocommerce-shipping-usps/class-woocommerce-shipping-usps.php',
 );

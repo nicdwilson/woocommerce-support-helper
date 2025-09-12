@@ -182,6 +182,9 @@ class WooCommerce_Shipping_Ups implements StepExporter, HasAlias {
 			'username',
 			'key',
 			'account',
+			'client_id',
+			'client_secret',
+			'shipper_number',
 		);
 
 		// Sanitize sensitive keys.
