@@ -52,8 +52,12 @@ The plugin uses a modular architecture where each major feature is organized int
 
 #### Shipping Methods Exporter (`includes/shipping-methods-exporter/`)
 - Exports shipping method settings for various WooCommerce shipping plugins
-- Currently supports: Australia Post, USPS
-- Planned support: FedEx, Royal Mail, UPS, Table Rate Shipping
+- Currently supports: 
+    1. [USPS Shipping Method for WooCommerce](https://woocommerce.com/products/usps-shipping-method/)
+    2. [UPS Shipping Method for WooCommerce](https://woocommerce.com/products/ups-shipping-method/)
+    3. [FedEx Shipping Method for WooCommerce](https://woocommerce.com/products/fedex-shipping-module/)
+    4. [Australia Post Shipping Method for WooCommerce](https://woocommerce.com/products/australia-post-shipping-method/)
+- Planned support: Royal Mail,Table Rate Shipping, Canada Post, etc.
 - Integrates with WooCommerce Blueprint system
 
 
