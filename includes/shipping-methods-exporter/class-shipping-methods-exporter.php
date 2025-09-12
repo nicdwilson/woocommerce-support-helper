@@ -38,6 +38,7 @@ class Shipping_Methods_Exporter {
 		'woocommerce-shipping-australia-post' => 'WooCommerce Australia Post Shipping',
 		'woocommerce-shipping-usps'           => 'WooCommerce USPS Shipping',
 		'woocommerce-shipping-fedex'          => 'WooCommerce Fedex Shipping',
+		'woocommerce-shipping-ups'            => 'WooCommerce UPS Shipping',
 	);
 
 	/**
