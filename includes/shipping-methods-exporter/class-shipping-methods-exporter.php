@@ -37,6 +37,7 @@ class Shipping_Methods_Exporter {
 	private $supported_plugins = array(
 		'woocommerce-shipping-australia-post' => 'WooCommerce Australia Post Shipping',
 		'woocommerce-shipping-usps'           => 'WooCommerce USPS Shipping',
+		'woocommerce-shipping-fedex'          => 'WooCommerce Fedex Shipping',
 	);
 
 	/**
