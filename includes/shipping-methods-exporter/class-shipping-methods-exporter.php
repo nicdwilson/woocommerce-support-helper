@@ -176,7 +176,7 @@ class Shipping_Methods_Exporter {
 		foreach ( $active_exporters as $plugin_slug => $exporter ) {
 			$exporters[] = $exporter;
 			Logger::debug(
-				'🔍 Added active shipping exporter to Blueprint exporters',
+				'Added active shipping exporter to Blueprint exporters',
 				array(
 					'plugin_slug'    => $plugin_slug,
 					'exporter_class' => get_class( $exporter ),
@@ -185,7 +185,7 @@ class Shipping_Methods_Exporter {
 		}
 
 		if ( ! empty( $exporters ) ) {
-			Logger::info( '🔍 Shipping Export: Added ' . count( $exporters ) . ' exporters to Blueprint' );
+			Logger::info( 'Shipping Export: Added ' . count( $exporters ) . ' exporters to Blueprint' );
 		}
 
 		return $exporters;
@@ -218,7 +218,7 @@ class Shipping_Methods_Exporter {
 		$final_options = array_merge( $site_options, $shipping_method_options );
 
 		if ( ! empty( $shipping_method_options ) ) {
-			Logger::info( '🔍 Shipping Export: Site options export completed - ' . count( $shipping_method_options ) . ' options added' );
+			Logger::info( 'Shipping Export: Site options export completed - ' . count( $shipping_method_options ) . ' options added' );
 		}
 
 		return $final_options;
@@ -235,7 +235,7 @@ class Shipping_Methods_Exporter {
 		// Check if we have any active exporters available.
 		$active_exporters = $this->get_active_shipping_exporters();
 		if ( empty( $active_exporters ) ) {
-			Logger::info( 'ℹ️ No active shipping exporters available for zone configuration export' );
+			Logger::info( 'No active shipping exporters available for zone configuration export' );
 			return $shipping_zones;
 		}
 
@@ -247,7 +247,7 @@ class Shipping_Methods_Exporter {
 				$shipping_zone_options = array_merge( $shipping_zone_options, $exporter_zones );
 
 				Logger::debug(
-					'🔍 Exported zone configurations from active exporter',
+					'Exported zone configurations from active exporter',
 					array(
 						'exporter_key' => $exporter_key,
 						'zones_count'  => count( $exporter_zones ),
@@ -255,7 +255,7 @@ class Shipping_Methods_Exporter {
 				);
 			} else {
 				Logger::debug(
-					'🔍 Exporter does not implement get_shipping_zone_configurations',
+					'Exporter does not implement get_shipping_zone_configurations',
 					array(
 						'exporter_key'   => $exporter_key,
 						'exporter_class' => get_class( $exporter ),
@@ -265,7 +265,7 @@ class Shipping_Methods_Exporter {
 		}
 
 		Logger::info(
-			'🔍 Shipping zone configurations export completed',
+			'Shipping zone configurations export completed',
 			array(
 				'active_exporters_processed' => count( $active_exporters ),
 				'total_zones_added'          => count( $shipping_zone_options ),
@@ -378,14 +378,14 @@ class Shipping_Methods_Exporter {
 			);
 
 			Logger::info(
-				'🔍 Added shipping exporters to Blueprint UI',
+				'Added shipping exporters to Blueprint UI',
 				array(
 					'active_exporters_count' => count( $active_exporters ),
 					'ui_items_count'         => count( $shipping_items ),
 				)
 			);
 		} else {
-			Logger::info( 'ℹ️ No active shipping exporters to add to Blueprint UI' );
+			Logger::info( 'No active shipping exporters to add to Blueprint UI' );
 		}
 
 		return $settings;
@@ -402,13 +402,13 @@ class Shipping_Methods_Exporter {
 
 		// If no payload provided, return original steps.
 		if ( empty( $payload ) ) {
-			Logger::debug( '🔍 No payload provided, returning original steps' );
+			Logger::debug( 'No payload provided, returning original steps' );
 			return $blueprint_steps;
 		}
 
 		// Check if plugin_settings are selected in the payload.
 		if ( ! isset( $payload['plugin_settings'] ) || empty( $payload['plugin_settings'] ) ) {
-			Logger::debug( '🔍 No plugin_settings found in payload' );
+			Logger::debug( 'No plugin_settings found in payload' );
 			return $blueprint_steps;
 		}
 
@@ -430,7 +430,7 @@ class Shipping_Methods_Exporter {
 							$shipping_aliases[] = $alias;
 
 							Logger::debug(
-								'🔍 Mapped active plugin slug to alias',
+								'Mapped active plugin slug to alias',
 								array(
 									'plugin_slug'    => $plugin_slug,
 									'alias'          => $alias,
@@ -466,7 +466,7 @@ class Shipping_Methods_Exporter {
 				}
 			} else {
 				Logger::debug(
-					'🔍 Plugin slug not in supported plugins',
+					'Plugin slug not in supported plugins',
 					array(
 						'plugin_slug'       => $plugin_slug,
 						'supported_plugins' => array_keys( $this->supported_plugins ),
@@ -478,7 +478,7 @@ class Shipping_Methods_Exporter {
 		if ( ! empty( $shipping_aliases ) ) {
 			$blueprint_steps = array_merge( $blueprint_steps, $shipping_aliases );
 			Logger::info(
-				'🔍 Added shipping aliases to blueprint steps',
+				'Added shipping aliases to blueprint steps',
 				array(
 					'shipping_aliases' => $shipping_aliases,
 					'total_steps'      => count( $blueprint_steps ),

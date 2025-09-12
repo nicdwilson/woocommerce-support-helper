@@ -63,7 +63,7 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		// Get all USPS site options.
 		$site_options = $this->get_site_options();
 
-		Logger::info( '🇺🇸 USPS Exporter: Export completed successfully' );
+		Logger::info( 'USPS Exporter: Export completed successfully' );
 
 		// Create a step to set these options.
 		return new SetSiteOptions( $site_options );
@@ -98,7 +98,7 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 
 		} catch ( Exception $e ) {
 			Logger::error(
-				'🇺🇸 Error getting shipping zones with USPS',
+				'Error getting shipping zones with USPS',
 				array(
 					'error' => $e->getMessage(),
 				)
@@ -260,7 +260,7 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 			}
 		} catch ( Exception $e ) {
 			Logger::error(
-				'🇺🇸 Error getting zone-specific method settings',
+				'Error getting zone-specific method settings',
 				array(
 					'error' => $e->getMessage(),
 				)

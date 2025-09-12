@@ -63,7 +63,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		// Get all Australia Post site options.
 		$site_options = $this->get_site_options();
 
-		Logger::info( '🇦🇺 Australia Post Exporter: Export completed successfully' );
+		Logger::info( 'Australia Post Exporter: Export completed successfully' );
 
 		// Create a step to set these options.
 		return new SetSiteOptions( $site_options );

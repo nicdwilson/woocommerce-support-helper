@@ -62,7 +62,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	public function modify_plugin_exporter( $exporters ) {
 		foreach ( $exporters as $exporter ) {
 			if ( $exporter instanceof \Automattic\WooCommerce\Blueprint\Exporters\ExportInstallPluginSteps ) {
-				\WooCommerceSupportHelper\Logger::info( '🔧 Blueprint Export: Private plugin filtering enabled' );
+				\WooCommerceSupportHelper\Logger::info( 'Blueprint Export: Private plugin filtering enabled' );
 				$exporter->include_private_plugins( true );
 
 				// Add a filter to only include plugins that are available via updaters.
@@ -98,9 +98,9 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 		}
 
 		if ( $excluded_count > 0 ) {
-			\WooCommerceSupportHelper\Logger::info( "🔍 Blueprint Export: Filtered {$excluded_count} unavailable plugins, " . count($available_plugins) . " plugins included" );
+			\WooCommerceSupportHelper\Logger::info( "Blueprint Export: Filtered {$excluded_count} unavailable plugins, " . count($available_plugins) . " plugins included" );
 		} else {
-			\WooCommerceSupportHelper\Logger::info( "✅ Blueprint Export: All " . count($available_plugins) . " plugins are available" );
+			\WooCommerceSupportHelper\Logger::info( "Blueprint Export: All " . count($available_plugins) . " plugins are available" );
 		}
 		
 		return $available_plugins;
@@ -261,7 +261,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 				$new_count      = count( $group['items'] );
 				
 				if ( $original_count !== $new_count ) {
-					\WooCommerceSupportHelper\Logger::info( "🔧 Blueprint UI: Modified plugin list from {$original_count} to {$new_count} plugins" );
+					\WooCommerceSupportHelper\Logger::info( "Blueprint UI: Modified plugin list from {$original_count} to {$new_count} plugins" );
 				}
 				break;
 			}
