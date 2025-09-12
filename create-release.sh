@@ -49,8 +49,13 @@ cp phpcs.xml $RELEASE_DIR/
 echo "🔧 Setting up minimal vendor directory..."
 mkdir -p $RELEASE_DIR/vendor
 
-# Use our minimal autoloader instead of Composer's
-cp create-minimal-autoloader.php $RELEASE_DIR/vendor/autoload.php
+# Install production dependencies and copy autoloader
+echo "📦 Installing production dependencies..."
+composer install --no-dev --optimize-autoloader
+
+# Copy the production Composer autoloader
+cp vendor/autoload.php $RELEASE_DIR/vendor/
+cp -r vendor/composer $RELEASE_DIR/vendor/
 
 # Create .gitignore for release
 echo "📝 Creating .gitignore for release..."
@@ -72,9 +77,7 @@ vendor/composer/installers/
 
 # Keep only essential files
 !vendor/autoload.php
-!vendor/composer/autoload_*.php
-!vendor/composer/ClassLoader.php
-!vendor/composer/InstalledVersions.php
+!vendor/composer/
 
 # Development files
 .github/

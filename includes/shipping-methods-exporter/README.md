@@ -5,12 +5,12 @@ This module provides functionality to export shipping method configurations for 
 ## Structure
 
 - `class-shipping-methods-exporter.php` - Main coordinator class that manages all shipping exporters
-- `woocommerce-shipping-australia-post/` - Australia Post shipping method exporter
-- `woocommerce-shipping-fedex/` - FedEx shipping method exporter (placeholder)
-- `woocommerce-shipping-royalmail/` - Royal Mail shipping method exporter (placeholder)
-- `woocommerce-shipping-ups/` - UPS shipping method exporter (placeholder)
-- `woocommerce-shipping-usps/` - USPS shipping method exporter (placeholder)
-- `woocommerce-table-rate-shipping/` - Table Rate Shipping exporter (placeholder)
+- `woocommerce-shipping-australia-post/` - Australia Post shipping method exporter ✅ **Implemented**
+- `woocommerce-shipping-usps/` - USPS shipping method exporter ✅ **Implemented**
+- `woocommerce-shipping-fedex/` - FedEx shipping method exporter 🔄 **Planned**
+- `woocommerce-shipping-royalmail/` - Royal Mail shipping method exporter 🔄 **Planned**
+- `woocommerce-shipping-ups/` - UPS shipping method exporter 🔄 **Planned**
+- `woocommerce-table-rate-shipping/` - Table Rate Shipping exporter 🔄 **Planned**
 
 ## How It Works
 
@@ -39,3 +39,26 @@ This module integrates with WooCommerce Blueprint by:
 - Implementing the `StepExporter` interface
 - Returning `SetSiteOptions` steps with shipping configuration data
 - Hooking into the `wooblueprint_exporters` filter
+- Sanitizing sensitive data (API keys, passwords) while preserving configuration structure
+- Supporting both global plugin settings and per-method configurations
+
+## Current Status
+
+### ✅ Implemented Exporters
+- **Australia Post**: Complete exporter with zone-based configuration support
+- **USPS**: Full shipping configuration export with zone mapping
+
+### 🔄 Planned Exporters
+- **FedEx**: API credentials and service configurations
+- **UPS**: Account settings and service preferences  
+- **Royal Mail**: Configuration and service settings
+- **Table Rate Shipping**: Custom rate table configurations
+
+## Testing
+
+Each exporter includes test files to verify:
+- Plugin detection and activation
+- Site options export
+- Shipping zone configurations
+- Method settings export
+- Data sanitization

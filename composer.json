@@ -14,16 +14,11 @@
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
     },
     "autoload": {
+        "psr-4": {
+            "WooCommerceSupportHelper\\": "includes/"
+        },
         "classmap": [
-            "includes/",
-            "includes/blueprint-exporter/",
-            "includes/shipping-methods-exporter/",
-            "includes/shipping-methods-exporter/woocommerce-shipping-australia-post/",
-            "includes/shipping-methods-exporter/woocommerce-shipping-fedex/",
-            "includes/shipping-methods-exporter/woocommerce-shipping-royalmail/",
-            "includes/shipping-methods-exporter/woocommerce-shipping-ups/",
-            "includes/shipping-methods-exporter/woocommerce-shipping-usps/",
-            "includes/shipping-methods-exporter/woocommerce-table-rate-shipping/"
+            "includes/"
         ]
     },
     "autoload-dev": {

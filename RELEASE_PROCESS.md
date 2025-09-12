@@ -62,8 +62,8 @@ git push origin v1.0.1
 ### ✅ **Included Files**
 - `woocommerce-support-helper.php` - Main plugin file
 - `includes/` - All plugin modules and classes
-- `vendor/autoload.php` - Essential autoloader
-- `vendor/composer/` - Minimal composer files (autoload_*.php, ClassLoader.php, InstalledVersions.php)
+- `vendor/autoload.php` - Production Composer autoloader
+- `vendor/composer/` - Production Composer files (autoload_*.php, ClassLoader.php, InstalledVersions.php)
 - `README.md` - Plugin documentation
 - `LICENSE` - GPL license
 - `RELEASE_NOTES_v*.md` - Release notes (if available)
@@ -136,8 +136,8 @@ zip -r ../woocommerce-support-helper-v1.0.0.zip . -x "*.git*" "*.DS_Store*"
 - **Files**: 1000+ files
 
 ### After Optimization
-- **Minimal vendor directory**: ~2-3MB
-- **Includes**: Only essential autoloader files
+- **Production vendor directory**: ~2-3MB
+- **Includes**: Only production Composer autoloader files
 - **Files**: ~50-100 files
 - **Size reduction**: ~95% smaller
 
@@ -174,6 +174,7 @@ The release process includes several quality checks:
 - Check that `vendor/autoload.php` is present
 - Verify `vendor/composer/` directory has required files
 - Ensure PHP version compatibility
+- Run `composer install --no-dev --optimize-autoloader` to regenerate
 
 #### 2. **Package Too Large**
 - Check for development dependencies in vendor/

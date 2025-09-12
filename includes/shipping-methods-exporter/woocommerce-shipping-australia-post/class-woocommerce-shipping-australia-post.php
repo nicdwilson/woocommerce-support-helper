@@ -91,13 +91,13 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		}
 
 		// Get per-method settings for each shipping zone.
-		$shipping_zones = $this->get_shipping_zones_with_australia_post();
+		$zones_with_australia_post = $this->get_shipping_zones_with_australia_post();
 
 		Logger::debug(
 			'Found shipping zones with Australia Post',
 		);
 
-		foreach ( $shipping_zones as $zone ) {
+		foreach ( $zones_with_australia_post as $zone ) {
 			$method_settings = $this->get_method_settings_for_zone( $zone );
 			if ( ! empty( $method_settings ) ) {
 				$option_name                  = 'woocommerce_australia_post_' . $zone['method_instance_id'] . '_settings';

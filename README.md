@@ -1,10 +1,10 @@
 # WooCommerce Support Helper
 
-A modular WordPress plugin that extends WooCommerce with additional functionality for Happy Plugins.
+A WordPress plugin that extends WooCommerce Blueprint functionality with intelligent private plugin filtering and comprehensive shipping method exports.
 
 ## Description
 
-WooCommerce Support Helper is a modular WordPress plugin that extends WooCommerce functionality through a component-based architecture. It currently includes the Blueprint Exporter module, which intelligently filters private plugins during WooCommerce Blueprint exports.
+WooCommerce Support Helper enhances WooCommerce Blueprint exports by intelligently filtering private plugins and providing comprehensive shipping method configuration exports. It ensures successful blueprint imports by only including plugins that are available via updaters (like WooCommerce.com extensions).
 
 ## Requirements
 
@@ -28,9 +28,16 @@ WooCommerce Support Helper is a modular WordPress plugin that extends WooCommerc
 
 ## Installation
 
-1. Upload the `woocommerce-support-helper` folder to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Run `composer install` in the plugin directory to install dependencies
+### From Release Package (Recommended)
+1. Download the latest release from [GitHub Releases](https://github.com/happyplugins/woocommerce-support-helper/releases)
+2. Upload the `woocommerce-support-helper` folder to the `/wp-content/plugins/` directory
+3. Activate the plugin through the 'Plugins' menu in WordPress
+
+### From Source (Development)
+1. Clone the repository: `git clone https://github.com/happyplugins/woocommerce-support-helper.git`
+2. Run `composer install` to install dependencies
+3. Upload the plugin folder to `/wp-content/plugins/`
+4. Activate the plugin through WordPress admin
 
 ## Module System
 
@@ -45,7 +52,8 @@ The plugin uses a modular architecture where each major feature is organized int
 
 #### Shipping Methods Exporter (`includes/shipping-methods-exporter/`)
 - Exports shipping method settings for various WooCommerce shipping plugins
-- Supports multiple shipping providers (Australia Post, FedEx, Royal Mail, UPS, USPS)
+- Currently supports: Australia Post, USPS
+- Planned support: FedEx, Royal Mail, UPS, Table Rate Shipping
 - Integrates with WooCommerce Blueprint system
 
 
@@ -79,23 +87,29 @@ To add a new module:
 woocommerce-support-helper/
 ├── woocommerce-support-helper.php     # Main plugin file
 ├── composer.json                       # Dependencies and autoloading
+├── create-release.sh                  # Release package creation script
 ├── includes/                           # Core plugin classes and modules
 │   ├── class-module-loader.php        # Module management system
 │   ├── class-logger.php               # Logging utility
+│   ├── class-support-helper-api.php   # REST API endpoints
 │   ├── blueprint-exporter/            # Blueprint Exporter module
 │   │   ├── class-blueprint-exporter.php      # Main module class
 │   │   ├── class-abstract-exporter.php       # Abstract base class
 │   │   ├── class-private-plugin-exporter.php # Private plugin handling
+│   │   ├── class-custom-export-schema.php    # Custom export schema
+│   │   ├── class-custom-rest-api.php         # REST API integration
 │   │   └── README.md                  # Module documentation
-│   ├── shipping-methods-exporter/     # Shipping Methods Exporter module
-│   │   ├── class-shipping-methods-exporter.php # Main module class
-│   │   └── README.md                  # Module documentation
+│   └── shipping-methods-exporter/     # Shipping Methods Exporter module
+│       ├── class-shipping-methods-exporter.php # Main module class
+│       ├── woocommerce-shipping-australia-post/ # Australia Post exporter
+│       ├── woocommerce-shipping-usps/        # USPS exporter
+│       └── README.md                  # Module documentation
 ├── tests/                             # Test files
 │   ├── test-instantiate.php          # Class instantiation tests
 │   ├── test-simple.php               # Basic functionality tests
 │   ├── test-load.php                 # Loading tests
 │   └── README.md                     # Testing documentation
-├── vendor/                            # Composer dependencies
+├── vendor/                            # Composer dependencies (production only)
 └── .gitignore                         # Git ignore rules
 ```
 
@@ -112,6 +126,24 @@ composer test
 composer phpcs
 ```
 
+## Technical Details
+
+### Autoloading
+The plugin uses Composer's optimized autoloader with PSR-4 and classmap support for efficient class loading. The release package includes only production dependencies, resulting in a lightweight distribution.
+
+### Release Process
+Releases are created using the `create-release.sh` script, which:
+- Installs production dependencies only
+- Generates an optimized autoloader
+- Creates a clean package excluding development files
+- Validates package structure and functionality
+
 ## License
 
 This project is licensed under the GPL v2 or later.
+
+## Support
+
+- **Documentation**: This README and module-specific documentation
+- **Issues**: [GitHub Issues](https://github.com/happyplugins/woocommerce-support-helper/issues)
+- **Support**: [Happy Plugins Support](https://happyplugins.com/support)
