@@ -79,23 +79,6 @@ class Shipping_Methods_Exporter {
 					// Check if the plugin is active before adding the exporter.
 					if ( method_exists( $exporter, 'is_plugin_active' ) && $exporter->is_plugin_active() ) {
 						$this->shipping_exporters[ $plugin_slug ] = $exporter;
-						Logger::info(
-							'✅ Loaded active shipping exporter',
-							array(
-								'plugin_slug'    => $plugin_slug,
-								'plugin_name'    => $plugin_name,
-								'exporter_class' => get_class( $exporter ),
-							)
-						);
-					} else {
-						Logger::info(
-							'ℹ️ Skipped inactive shipping plugin',
-							array(
-								'plugin_slug' => $plugin_slug,
-								'plugin_name' => $plugin_name,
-								'reason'      => 'Plugin not active',
-							)
-						);
 					}
 				} else {
 					Logger::warning(
@@ -201,13 +184,9 @@ class Shipping_Methods_Exporter {
 			);
 		}
 
-		Logger::info(
-			'🔍 Added shipping exporters to Blueprint',
-			array(
-				'total_exporters'           => count( $exporters ),
-				'active_shipping_exporters' => count( $active_exporters ),
-			)
-		);
+		if ( ! empty( $exporters ) ) {
+			Logger::info( '🔍 Shipping Export: Added ' . count( $exporters ) . ' exporters to Blueprint' );
+		}
 
 		return $exporters;
 	}
@@ -224,7 +203,6 @@ class Shipping_Methods_Exporter {
 		// Check if we have any active exporters available.
 		$active_exporters = $this->get_active_shipping_exporters();
 		if ( empty( $active_exporters ) ) {
-			Logger::info( 'ℹ️ No active shipping exporters available for export' );
 			return $site_options;
 		}
 
@@ -234,26 +212,14 @@ class Shipping_Methods_Exporter {
 			if ( method_exists( $exporter, 'get_site_options' ) ) {
 				$exporter_options        = $exporter->get_site_options();
 				$shipping_method_options = array_merge( $shipping_method_options, $exporter_options );
-
-				Logger::debug(
-					'🔍 Exported site options from active exporter',
-					array(
-						'exporter_key'  => $exporter_key,
-						'options_count' => count( $exporter_options ),
-					)
-				);
 			}
 		}
 
 		$final_options = array_merge( $site_options, $shipping_method_options );
 
-		Logger::info(
-			'🔍 Shipping method site options export completed',
-			array(
-				'active_exporters_processed' => count( $active_exporters ),
-				'total_options_added'        => count( $shipping_method_options ),
-			)
-		);
+		if ( ! empty( $shipping_method_options ) ) {
+			Logger::info( '🔍 Shipping Export: Site options export completed - ' . count( $shipping_method_options ) . ' options added' );
+		}
 
 		return $final_options;
 	}

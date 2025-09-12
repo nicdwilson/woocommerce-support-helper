@@ -60,18 +60,10 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 	 * @return Step
 	 */
 	public function export(): Step {
-		Logger::info( '🇺🇸 USPS Exporter: Starting configuration export' );
-
 		// Get all USPS site options.
 		$site_options = $this->get_site_options();
 
-		Logger::info(
-			'🇺🇸 USPS Exporter: Export completed',
-			array(
-				'site_options_count' => count( $site_options ),
-				'site_options_keys'  => array_keys( $site_options ),
-			)
-		);
+		Logger::info( '🇺🇸 USPS Exporter: Export completed successfully' );
 
 		// Create a step to set these options.
 		return new SetSiteOptions( $site_options );

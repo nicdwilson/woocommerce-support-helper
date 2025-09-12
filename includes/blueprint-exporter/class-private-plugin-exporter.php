@@ -60,11 +60,9 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	 * @return array Modified exporters array.
 	 */
 	public function modify_plugin_exporter( $exporters ) {
-		\WooCommerceSupportHelper\Logger::debug( 'modify_plugin_exporter called with ' . count( $exporters ) . ' exporters' );
-
 		foreach ( $exporters as $exporter ) {
 			if ( $exporter instanceof \Automattic\WooCommerce\Blueprint\Exporters\ExportInstallPluginSteps ) {
-				\WooCommerceSupportHelper\Logger::info( 'Found ExportInstallPluginSteps, enabling private plugins' );
+				\WooCommerceSupportHelper\Logger::info( '🔧 Blueprint Export: Private plugin filtering enabled' );
 				$exporter->include_private_plugins( true );
 
 				// Add a filter to only include plugins that are available via updaters.
@@ -81,9 +79,8 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	 * @return array Filtered list of plugins
 	 */
 	public function filter_available_plugins( $plugins ) {
-		\WooCommerceSupportHelper\Logger::debug( 'filter_available_plugins called with ' . count( $plugins ) . ' plugins' );
-
 		$available_plugins = array();
+		$excluded_count = 0;
 
 		foreach ( $plugins as $path => $plugin ) {
 			$slug = dirname( $path );
@@ -95,13 +92,17 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 			// Check if this plugin is available via updaters.
 			if ( $this->is_plugin_available_via_updater( $slug, $plugin ) ) {
 				$available_plugins[ $path ] = $plugin;
-				\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} ({$slug}) is available via updater" );
 			} else {
-				\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} ({$slug}) is NOT available via updater - excluding from export" );
+				$excluded_count++;
 			}
 		}
 
-		\WooCommerceSupportHelper\Logger::info( 'Filtered plugins from ' . count( $plugins ) . ' to ' . count( $available_plugins ) . ' available plugins' );
+		if ( $excluded_count > 0 ) {
+			\WooCommerceSupportHelper\Logger::info( "🔍 Blueprint Export: Filtered {$excluded_count} unavailable plugins, " . count($available_plugins) . " plugins included" );
+		} else {
+			\WooCommerceSupportHelper\Logger::info( "✅ Blueprint Export: All " . count($available_plugins) . " plugins are available" );
+		}
+		
 		return $available_plugins;
 	}
 
@@ -118,14 +119,12 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 		$is_staging_or_local = in_array( $environment, array( 'staging', 'local', 'development' ) );
 
 		if ( $is_staging_or_local ) {
-			\WooCommerceSupportHelper\Logger::debug( "Environment detected as {$environment} - including all plugins" );
 			return true; // Include all plugins in staging/local environments.
 		}
 
 		// Always include WordPress.org plugins.
 		$info = $this->get_plugin_info( $slug );
 		if ( isset( $info->download_link ) ) {
-			\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} is available on WordPress.org" );
 			return true;
 		}
 
@@ -133,17 +132,10 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 		if ( $this->is_woocommerce_com_plugin( $plugin ) ) {
 			// For WooCommerce.com plugins, check subscription.
 			$has_subscription = $this->has_woocommerce_com_subscription( $plugin );
-			if ( $has_subscription ) {
-				\WooCommerceSupportHelper\Logger::debug( "WooCommerce.com plugin {$plugin['Name']} has valid subscription" );
-				return true;
-			} else {
-				\WooCommerceSupportHelper\Logger::debug( "WooCommerce.com plugin {$plugin['Name']} has no valid subscription - excluding" );
-				return false;
-			}
+			return $has_subscription;
 		}
 
 		// Not a WooCommerce.com plugin and not on WordPress.org.
-		\WooCommerceSupportHelper\Logger::debug( "Plugin {$plugin['Name']} is not a WooCommerce.com plugin and not on WordPress.org - excluding" );
 		return false;
 	}
 
@@ -187,14 +179,12 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	 */
 	private function has_woocommerce_com_subscription( $plugin ) {
 		if ( ! class_exists( 'WC_Helper' ) || ! class_exists( 'WC_Helper_Options' ) ) {
-			\WooCommerceSupportHelper\Logger::debug( 'WC_Helper or WC_Helper_Options not available - no subscription check possible' );
 			return false;
 		}
 
 		// Extract product ID from Woo header.
 		list($product_id, $file_id) = explode( ':', $plugin['Woo'] );
 		if ( empty( $product_id ) ) {
-			\WooCommerceSupportHelper\Logger::debug( 'No product ID found in Woo header - no subscription check possible' );
 			return false;
 		}
 
@@ -204,7 +194,6 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 
 		// If no auth or subscriptions, no valid subscription.
 		if ( empty( $auth['site_id'] ) || empty( $subscriptions ) ) {
-			\WooCommerceSupportHelper\Logger::debug( 'No marketplace connection or subscriptions available' );
 			return false;
 		}
 
@@ -215,13 +204,11 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 			}
 
 			if ( in_array( absint( $auth['site_id'] ), $subscription['connections'] ) ) {
-				\WooCommerceSupportHelper\Logger::debug( "Found active subscription for product {$product_id}" );
 				return true;
 			}
 		}
 
 		// No active subscription found.
-		\WooCommerceSupportHelper\Logger::debug( "No active subscription found for product {$product_id}" );
 		return false;
 	}
 
@@ -257,10 +244,7 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 	 * @return array Modified settings array.
 	 */
 	public function modify_plugin_list( $settings ) {
-		\WooCommerceSupportHelper\Logger::debug( 'modify_plugin_list called' );
-
 		if ( ! is_admin() ) {
-			\WooCommerceSupportHelper\Logger::debug( 'Not admin context' );
 			return $settings;
 		}
 
@@ -269,15 +253,16 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 			return $settings;
 		}
 
-		\WooCommerceSupportHelper\Logger::debug( 'Found blueprint_step_groups, modifying plugin list' );
-
 		// Find the plugins group and modify it.
 		foreach ( $settings['blueprint_step_groups'] as &$group ) {
 			if ( $group['id'] === 'plugins' ) {
 				$original_count = count( $group['items'] );
 				$group['items'] = $this->get_available_plugins_for_export();
 				$new_count      = count( $group['items'] );
-				\WooCommerceSupportHelper\Logger::info( "Modified plugin list from {$original_count} to {$new_count} plugins" );
+				
+				if ( $original_count !== $new_count ) {
+					\WooCommerceSupportHelper\Logger::info( "🔧 Blueprint UI: Modified plugin list from {$original_count} to {$new_count} plugins" );
+				}
 				break;
 			}
 		}
@@ -322,3 +307,4 @@ class Private_Plugin_Exporter extends Abstract_Exporter {
 		return $available_plugins;
 	}
 }
+

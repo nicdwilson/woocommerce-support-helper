@@ -60,14 +60,10 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 	 * @return Step
 	 */
 	public function export(): Step {
-		Logger::info( '🇦🇺 Australia Post Exporter: Starting configuration export' );
-
 		// Get all Australia Post site options.
 		$site_options = $this->get_site_options();
 
-		Logger::info(
-			'Australia Post Exporter: Export completed'
-		);
+		Logger::info( '🇦🇺 Australia Post Exporter: Export completed successfully' );
 
 		// Create a step to set these options.
 		return new SetSiteOptions( $site_options );
@@ -85,32 +81,16 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		$global_settings = get_option( 'woocommerce_australia_post_settings', array() );
 		if ( ! empty( $global_settings ) ) {
 			$site_options['woocommerce_australia_post_settings'] = $this->sanitize_settings( $global_settings );
-			Logger::debug(
-				'Found global Australia Post settings',
-			);
 		}
 
 		// Get per-method settings for each shipping zone.
 		$zones_with_australia_post = $this->get_shipping_zones_with_australia_post();
 
-		Logger::debug(
-			'Found shipping zones with Australia Post',
-		);
-
 		foreach ( $zones_with_australia_post as $zone ) {
 			$method_settings = $this->get_method_settings_for_zone( $zone );
 			if ( ! empty( $method_settings ) ) {
 				$option_name                  = 'woocommerce_australia_post_' . $zone['method_instance_id'] . '_settings';
-				$site_options[ $option_name ] = $this->sanitize_settings( $method_settings );
-				Logger::debug(
-					'🇦🇺 Found method settings for zone',
-					array(
-						'zone_id'            => $zone['zone_id'],
-						'zone_name'          => $zone['zone_name'],
-						'method_instance_id' => $zone['method_instance_id'],
-						'settings_count'     => count( $method_settings ),
-					)
-				);
+			$site_options[ $option_name ] = $this->sanitize_settings( $method_settings );
 			}
 		}
 
@@ -133,16 +113,11 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 		}
 		$zones[] = new \WC_Shipping_Zone( 0 ); // ADD ZONE "0" MANUALLY.
 
-		if ( ! empty( $zones ) ) {
-			Logger::debug( '🇦🇺 Found ' . count( $zones ) . ' shipping zones' );
-		}
 
 		foreach ( $zones as $zone ) {
-				Logger::debug( '🇦🇺 Found zone ' . $zone->get_id() . ' ' . $zone->get_zone_name() );
 				$methods = $zone->get_shipping_methods();
 			foreach ( $methods as $method ) {
 				if ( $method->id === self::METHOD_ID ) {
-					Logger::debug( '🇦🇺 Found method ' . $method->id );
 					$zones_with_australia_post[] = array(
 						'zone_id'            => $zone->get_id(),
 						'zone_name'          => $zone->get_zone_name(),
@@ -152,7 +127,6 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 			}
 		}
 
-		Logger::debug( '🇦🇺 Found ' . count( $zones_with_australia_post ) . ' zones with Australia Post' );
 
 		return $zones_with_australia_post;
 	}
