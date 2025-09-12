@@ -200,7 +200,7 @@ class Blueprint_Exporter {
 		if ( class_exists( '\WooCommerceSupportHelper\BlueprintExporter\Custom_Export_Schema' ) ) {
 			$exporter = new Custom_Export_Schema();
 		} else {
-			\WooCommerceSupportHelper\Logger::warning( '🚀 Custom_Export_Schema not available, falling back to WooCommerce ExportSchema' );
+			\WooCommerceSupportHelper\Logger::warning( 'Custom_Export_Schema not available, falling back to WooCommerce ExportSchema' );
 			$exporter = new \Automattic\WooCommerce\Blueprint\ExportSchema();
 		}
 
@@ -272,13 +272,6 @@ class Blueprint_Exporter {
 
 		// Handle plugin installations.
 		if ( isset( $steps['plugins'] ) && count( $steps['plugins'] ) > 0 ) {
-			\WooCommerceSupportHelper\Logger::info(
-				'🔍 Found plugins in payload',
-				array(
-					'plugins_count'  => count( $steps['plugins'] ),
-					'plugins_sample' => array_slice( $steps['plugins'], 0, 5 ),
-				)
-			);
 			$blueprint_steps[] = 'installPlugin';
 		}
 

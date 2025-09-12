@@ -175,17 +175,6 @@ class Shipping_Methods_Exporter {
 
 		foreach ( $active_exporters as $plugin_slug => $exporter ) {
 			$exporters[] = $exporter;
-			Logger::debug(
-				'Added active shipping exporter to Blueprint exporters',
-				array(
-					'plugin_slug'    => $plugin_slug,
-					'exporter_class' => get_class( $exporter ),
-				)
-			);
-		}
-
-		if ( ! empty( $exporters ) ) {
-			Logger::info( 'Shipping Export: Added ' . count( $exporters ) . ' exporters to Blueprint' );
 		}
 
 		return $exporters;
@@ -377,13 +366,6 @@ class Shipping_Methods_Exporter {
 				'items'       => $shipping_items,
 			);
 
-			Logger::info(
-				'Added shipping exporters to Blueprint UI',
-				array(
-					'active_exporters_count' => count( $active_exporters ),
-					'ui_items_count'         => count( $shipping_items ),
-				)
-			);
 		} else {
 			Logger::info( 'No active shipping exporters to add to Blueprint UI' );
 		}
@@ -429,17 +411,9 @@ class Shipping_Methods_Exporter {
 							$alias              = $exporter->get_alias();
 							$shipping_aliases[] = $alias;
 
-							Logger::debug(
-								'Mapped active plugin slug to alias',
-								array(
-									'plugin_slug'    => $plugin_slug,
-									'alias'          => $alias,
-									'exporter_class' => get_class( $exporter ),
-								)
-							);
 						} else {
 							Logger::warning(
-								'⚠️ Exporter does not implement get_alias method',
+								'Exporter does not implement get_alias method',
 								array(
 									'plugin_slug'    => $plugin_slug,
 									'exporter_class' => get_class( $exporter ),
@@ -448,7 +422,7 @@ class Shipping_Methods_Exporter {
 						}
 					} else {
 						Logger::warning(
-							'⚠️ Skipped inactive plugin in export schema',
+							'Skipped inactive plugin in export schema',
 							array(
 								'plugin_slug' => $plugin_slug,
 								'reason'      => 'Plugin not active',
@@ -457,7 +431,7 @@ class Shipping_Methods_Exporter {
 					}
 				} else {
 					Logger::warning(
-						'⚠️ Exporter not found for plugin slug',
+						'Exporter not found for plugin slug',
 						array(
 							'plugin_slug'         => $plugin_slug,
 							'available_exporters' => array_keys( $this->shipping_exporters ),
@@ -477,13 +451,6 @@ class Shipping_Methods_Exporter {
 
 		if ( ! empty( $shipping_aliases ) ) {
 			$blueprint_steps = array_merge( $blueprint_steps, $shipping_aliases );
-			Logger::info(
-				'Added shipping aliases to blueprint steps',
-				array(
-					'shipping_aliases' => $shipping_aliases,
-					'total_steps'      => count( $blueprint_steps ),
-				)
-			);
 		}
 
 		return $blueprint_steps;

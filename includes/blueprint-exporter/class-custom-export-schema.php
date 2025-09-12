@@ -180,8 +180,6 @@ class Custom_Export_Schema extends ExportSchema {
 			}
 		}
 
-		\WooCommerceSupportHelper\Logger::info( 'Unique Exporters: ' . wp_json_encode( $unique_exporters ) );
-
 		return $unique_exporters;
 	}
 
