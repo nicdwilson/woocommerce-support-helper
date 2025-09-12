@@ -81,39 +81,18 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		$global_settings = get_option( 'woocommerce_usps_settings', array() );
 		if ( ! empty( $global_settings ) ) {
 			$site_options['woocommerce_usps_settings'] = $this->sanitize_settings( $global_settings );
-			Logger::info(
-				'🇺🇸 Found global USPS settings',
-				array(
-					'settings_count' => count( $global_settings ),
-					'settings_keys'  => array_keys( $global_settings ),
-				)
-			);
-		} else {
-			Logger::warning( '🇺🇸 No global USPS settings found' );
 		}
 
 		// Get zone-specific settings with better error handling.
 		try {
 			$shipping_zones = $this->get_shipping_zones_with_usps();
 			
-			Logger::debug(
-				'Found shipping zones with USPS',
-			);
 	
 			foreach ( $shipping_zones as $zone ) {
 				$method_settings = $this->get_method_settings_for_zone( $zone );
 				if ( ! empty( $method_settings ) ) {
 					$option_name                  = 'woocommerce_usps_' . $zone['method_instance_id'] . '_settings';
 					$site_options[ $option_name ] = $this->sanitize_settings( $method_settings );
-					Logger::debug(
-						'🇺🇸 Found method settings for zone',
-						array(
-							'zone_id'            => $zone['zone_id'],
-							'zone_name'          => $zone['zone_name'],
-							'method_instance_id' => $zone['method_instance_id'],
-							'settings_count'     => count( $method_settings ),
-						)
-					);
 				}
 			}
 
@@ -126,7 +105,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 			);
 		}
 
-		Logger::debug( '🇺🇸 Found ' . count( $site_options ) . ' USPS site options' );
 
 		return $site_options;
 	}
@@ -147,16 +125,11 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		}
 		$zones[] = new \WC_Shipping_Zone( 0 ); // ADD ZONE "0" MANUALLY.
 
-		if ( ! empty( $zones ) ) {
-			Logger::debug( '🇺🇸 Found ' . count( $zones ) . ' shipping zones' );
-		}
 
 		foreach ( $zones as $zone ) {
-				Logger::debug( '🇺🇸 Found zone ' . $zone->get_id() . ' ' . $zone->get_zone_name() );
 				$methods = $zone->get_shipping_methods();
 			foreach ( $methods as $method ) {
 				if ( $method->id === self::METHOD_ID ) {
-					Logger::debug( '🇺🇸 Found method ' . $method->id );
 					$zones_with_usps[] = array(
 						'zone_id'            => $zone->get_id(),
 						'zone_name'          => $zone->get_zone_name(),
@@ -166,7 +139,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 			}
 		}
 
-		Logger::debug( '🇺🇸 Found ' . count( $zones_with_usps ) . ' zones with USPS' );
 
 		return $zones_with_usps;
 	}
@@ -272,12 +244,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		$global_settings = get_option( 'woocommerce_usps_settings', array() );
 		if ( ! empty( $global_settings ) ) {
 			$settings['general'] = $this->sanitize_settings( $global_settings );
-			Logger::info(
-				'🇺🇸 Added global USPS settings to method settings',
-				array(
-					'settings_count' => count( $global_settings ),
-				)
-			);
 		}
 
 		// Get zone-specific settings.
@@ -290,14 +256,6 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 					$categorized = $this->categorize_settings( $method_settings );
 					$settings    = array_merge_recursive( $settings, $categorized );
 
-					Logger::info(
-						'🇺🇸 Added zone settings to method settings',
-						array(
-							'zone_id'           => $zone['zone_id'],
-							'zone_name'         => $zone['zone_name'],
-							'categorized_count' => count( $categorized ),
-						)
-					);
 				}
 			}
 		} catch ( Exception $e ) {
@@ -312,16 +270,8 @@ class WooCommerce_Shipping_Usps implements StepExporter, HasAlias {
 		// Add demo data if no real settings.
 		if ( empty( $settings['general'] ) ) {
 			$settings['general'] = $this->get_demo_settings();
-			Logger::info( '🇺🇸 Added demo USPS settings due to no real settings found' );
 		}
 
-		Logger::info(
-			'🇺🇸 Method settings compilation completed',
-			array(
-				'total_sections' => count( $settings ),
-				'sections'       => array_keys( $settings ),
-			)
-		);
 
 		return $settings;
 	}
