@@ -139,9 +139,12 @@ class ComposerStaticInit4b7a21fc1814f7aa75903bee8d76e645
         'WooCommerceSupportHelper\\Shipping_Methods_Exporter' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/class-shipping-methods-exporter.php',
         'WooCommerceSupportHelper\\WC_Support_Helper_API' => __DIR__ . '/../..' . '/includes/class-support-helper-api.php',
         'WooCommerceSupportHelper\\WooCommerce_Shipping_Australia_Post' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-australia-post/class-woocommerce-shipping-australia-post.php',
+        'WooCommerceSupportHelper\\WooCommerce_Shipping_Canada_Post' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-canada-post/class-woocommerce-shipping-canada-post.php',
         'WooCommerceSupportHelper\\WooCommerce_Shipping_Fedex' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-fedex/class-woocommerce-shipping-fedex.php',
+        'WooCommerceSupportHelper\\WooCommerce_Shipping_Royal_Mail' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-royalmail/class-woocommerce-shipping-royalmail.php',
         'WooCommerceSupportHelper\\WooCommerce_Shipping_Ups' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-ups/class-woocommerce-shipping-ups.php',
         'WooCommerceSupportHelper\\WooCommerce_Shipping_Usps' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-shipping-usps/class-woocommerce-shipping-usps.php',
+        'WooCommerceSupportHelper\\WooCommerce_Table_Rate_Shipping' => __DIR__ . '/../..' . '/includes/shipping-methods-exporter/woocommerce-table-rate-shipping/class-woocommerce-table-rate-shipping.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

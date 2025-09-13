@@ -394,8 +394,6 @@ class WooCommerce_Table_Rate_Shipping implements StepExporter, HasAlias {
 		$possible_files = array(
 			self::PLUGIN_SLUG . '/' . self::PLUGIN_SLUG . '.php',
 			'woocommerce-table-rate-shipping/woocommerce-table-rate-shipping.php',
-			'woocommerce-table-rate-shipping/table-rate-shipping.php',
-			'woocommerce-table-rate-shipping/woocommerce-table-rate-shipping.php',
 		);
 
 		foreach ( $possible_files as $file ) {
@@ -405,31 +403,6 @@ class WooCommerce_Table_Rate_Shipping implements StepExporter, HasAlias {
 			}
 		}
 
-		// Check if WooCommerce is available and has the table rate method.
-		if ( function_exists( 'WC' ) && WC() && method_exists( WC(), 'shipping' ) ) {
-			$shipping_methods = WC()->shipping()->get_shipping_methods();
-			// Check for common table rate method IDs
-			$table_rate_methods = array( 'table_rate', 'table-rate', 'table_rate_shipping' );
-			foreach ( $table_rate_methods as $method_id ) {
-				if ( isset( $shipping_methods[ $method_id ] ) ) {
-					Logger::info( 'Table Rate Shipping method detected: ' . $method_id );
-					return true;
-				}
-			}
-		}
-
-		// Check if common table rate shipping classes exist.
-		$table_rate_classes = array( 'WC_Shipping_Table_Rate', 'WC_Table_Rate_Shipping', 'WooCommerce_Table_Rate_Shipping' );
-		foreach ( $table_rate_classes as $class_name ) {
-			if ( class_exists( $class_name ) ) {
-				Logger::info( 'Table Rate Shipping class detected: ' . $class_name );
-				return true;
-			}
-		}
-
-		// Log that no table rate shipping was detected for debugging.
-		Logger::info( 'Table Rate Shipping plugin not detected' );
-		return false;
 	}
 
 	/**
