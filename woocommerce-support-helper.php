@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Support Helper
  * Plugin URI: https://happyplugins.com
  * Description: Extends WooCommerce Blueprint exporter with intelligent private plugin filtering. Only exports private plugins that are available via updaters (like WooCommerce.com extensions) to ensure successful blueprint imports.
- * Version: 0.3.0
+ * Version: 0.4.0
  * Author: @nicw, WooCommerce Growth Team
  * Author URI: https://happyplugins.com
  * Text Domain: woocommerce-support-helper
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'WC_SUPPORT_HELPER_VERSION', '0.3.0' );
+define( 'WC_SUPPORT_HELPER_VERSION', '0.4.0' );
 define( 'WC_SUPPORT_HELPER_FILE', __FILE__ );
 define( 'WC_SUPPORT_HELPER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WC_SUPPORT_HELPER_URL', plugin_dir_url( __FILE__ ) );
