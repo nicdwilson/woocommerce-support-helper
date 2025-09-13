@@ -27,21 +27,42 @@ class Shipping_Methods_Exporter {
 	 * Array of supported shipping plugins.
 	 *
 	 * Structured like this:
-	 * 'plugin-slug' => 'Plugin Name',
-	 * Then, as we go along, directories are structured as `plugin-slug`
-	 * Class files are named `class-plugin-slug.php`
-	 * Classes are named `Plugin_Slug`
+	 * 'plugin-slug' => array(
+	 *     'exporter' => 'Class_Name',
+	 *     'label'    => 'Plugin Display Name'
+	 * )
 	 *
 	 * @var array
 	 */
 	private $supported_plugins = array(
-		'woocommerce-shipping-australia-post' => 'WooCommerce Australia Post Shipping',
-		'woocommerce-shipping-usps'           => 'WooCommerce USPS Shipping',
-		'woocommerce-shipping-fedex'          => 'WooCommerce Fedex Shipping',
-		'woocommerce-shipping-ups'            => 'WooCommerce UPS Shipping',
-		'woocommerce-table-rate-shipping'     => 'WooCommerce Table Rate Shipping',
-		'woocommerce-shipping-canada-post'    => 'WooCommerce Canada Post Shipping',
-		'woocommerce-shipping-royalmail'      => 'WooCommerce Royal Mail Shipping',
+		'woocommerce-shipping-australia-post' => array(
+			'exporter' => 'WooCommerce_Shipping_Australia_Post',
+			'label'    => 'WooCommerce Australia Post Shipping',
+		),
+		'woocommerce-shipping-usps' => array(
+			'exporter' => 'WooCommerce_Shipping_Usps',
+			'label'    => 'WooCommerce USPS Shipping',
+		),
+		'woocommerce-shipping-fedex' => array(
+			'exporter' => 'WooCommerce_Shipping_Fedex',
+			'label'    => 'WooCommerce Fedex Shipping',
+		),
+		'woocommerce-shipping-ups' => array(
+			'exporter' => 'WooCommerce_Shipping_Ups',
+			'label'    => 'WooCommerce UPS Shipping',
+		),
+		'woocommerce-table-rate-shipping' => array(
+			'exporter' => 'WooCommerce_Table_Rate_Shipping',
+			'label'    => 'WooCommerce Table Rate Shipping',
+		),
+		'woocommerce-shipping-canada-post' => array(
+			'exporter' => 'WooCommerce_Shipping_Canada_Post',
+			'label'    => 'WooCommerce Canada Post Shipping',
+		),
+		'woocommerce-shipping-royalmail' => array(
+			'exporter' => 'WooCommerce_Shipping_Royal_Mail',
+			'label'    => 'WooCommerce Royal Mail Shipping',
+		),
 	);
 
 	/**
@@ -57,8 +78,8 @@ class Shipping_Methods_Exporter {
 	 */
 	public function init_shipping_exporters() {
 		// Load all supported shipping exporters dynamically.
-		foreach ( $this->supported_plugins as $plugin_slug => $plugin_name ) {
-			$this->load_shipping_exporter( $plugin_slug, $plugin_name );
+		foreach ( $this->supported_plugins as $plugin_slug => $plugin_data ) {
+			$this->load_shipping_exporter( $plugin_slug, $plugin_data['label'], $plugin_data['exporter'] );
 		}
 	}
 
@@ -67,10 +88,10 @@ class Shipping_Methods_Exporter {
 	 *
 	 * @param string $plugin_slug The plugin slug.
 	 * @param string $plugin_name The plugin display name.
+	 * @param string $class_name The exporter class name.
 	 */
-	private function load_shipping_exporter( $plugin_slug, $plugin_name ) {
+	private function load_shipping_exporter( $plugin_slug, $plugin_name, $class_name ) {
 		$exporter_path   = __DIR__ . '/' . $plugin_slug . '/class-' . $plugin_slug . '.php';
-		$class_name      = $this->plugin_slug_to_class_name( $plugin_slug );
 		$full_class_name = '\\WooCommerceSupportHelper\\' . $class_name;
 
 		if ( file_exists( $exporter_path ) ) {
@@ -115,37 +136,6 @@ class Shipping_Methods_Exporter {
 		}
 	}
 
-	/**
-	 * Convert plugin slug to class name
-	 *
-	 * Examples:
-	 * - woocommerce-shipping-australia-post → WooCommerce_Shipping_Australia_Post
-	 * - woocommerce-shipping-fedex → WooCommerce_Shipping_Fedex
-	 * - woocommerce-shipping-ups → WooCommerce_Shipping_Ups
-	 *
-	 * @param string $plugin_slug The plugin slug (e.g., 'woocommerce-shipping-australia-post').
-	 * @return string The class name (e.g., 'WooCommerce_Shipping_Australia_Post').
-	 */
-	private function plugin_slug_to_class_name( $plugin_slug ) {
-		// Remove 'woocommerce-shipping-' prefix if present.
-		$name = str_replace( 'woocommerce-shipping-', '', $plugin_slug );
-
-		// Convert hyphens to underscores.
-		$name = str_replace( '-', '_', $name );
-
-		// Convert to title case (capitalize first letter of each word).
-		$name = str_replace( '_', ' ', $name );
-		$name = ucwords( $name );
-		$name = str_replace( ' ', '_', $name );
-
-		// Handle special cases for abbreviations.
-		$name = str_replace( 'Ups', 'UPS', $name );
-		$name = str_replace( 'Usps', 'USPS', $name );
-		$name = str_replace( 'Fedex', 'FedEx', $name );
-
-		// Add the WooCommerce_Shipping_ prefix.
-		return 'WooCommerce_Shipping_' . $name;
-	}
 
 	/**
 	 * Initialize WordPress and WooCommerce hooks
