@@ -2,9 +2,15 @@
 
 A WordPress plugin that extends WooCommerce Blueprint functionality with intelligent private plugin filtering and comprehensive shipping method exports.
 
+## Version 0.4.0
+
+🎉 **Major Milestone**: Complete shipping method exporter support for all major WooCommerce shipping providers!
+
 ## Description
 
 WooCommerce Support Helper enhances WooCommerce Blueprint exports by intelligently filtering private plugins and providing comprehensive shipping method configuration exports. It ensures successful blueprint imports by only including plugins that are available via updaters (like WooCommerce.com extensions).
+
+**Version 0.4.0** represents a major milestone with complete support for all major shipping method exporters, making it the most comprehensive shipping configuration export solution for WooCommerce Blueprint.
 
 ## Requirements
 
@@ -52,12 +58,16 @@ The plugin uses a modular architecture where each major feature is organized int
 
 #### Shipping Methods Exporter (`includes/shipping-methods-exporter/`)
 - Exports shipping method settings for various WooCommerce shipping plugins
-- Currently supports: 
-    1. [USPS Shipping Method for WooCommerce](https://woocommerce.com/products/usps-shipping-method/)
-    2. [UPS Shipping Method for WooCommerce](https://woocommerce.com/products/ups-shipping-method/)
+- **Complete support for all major shipping providers**:
+    1. [Australia Post Shipping Method for WooCommerce](https://woocommerce.com/products/australia-post-shipping-method/)
+    2. [USPS Shipping Method for WooCommerce](https://woocommerce.com/products/usps-shipping-method/)
     3. [FedEx Shipping Method for WooCommerce](https://woocommerce.com/products/fedex-shipping-module/)
-    4. [Australia Post Shipping Method for WooCommerce](https://woocommerce.com/products/australia-post-shipping-method/)
-- Planned support: Royal Mail,Table Rate Shipping, Canada Post, etc.
+    4. [UPS Shipping Method for WooCommerce](https://woocommerce.com/products/ups-shipping-method/)
+    5. [Table Rate Shipping for WooCommerce](https://woocommerce.com/products/table-rate-shipping/)
+    6. [Canada Post Shipping Method for WooCommerce](https://woocommerce.com/products/canada-post-shipping-method/)
+    7. [Royal Mail Shipping Method for WooCommerce](https://woocommerce.com/products/royal-mail-shipping-method/)
+- Comprehensive zone-based configuration support
+- Database table export for table rate shipping
 - Integrates with WooCommerce Blueprint system
 
 
@@ -107,6 +117,11 @@ woocommerce-support-helper/
 │       ├── class-shipping-methods-exporter.php # Main module class
 │       ├── woocommerce-shipping-australia-post/ # Australia Post exporter
 │       ├── woocommerce-shipping-usps/        # USPS exporter
+│       ├── woocommerce-shipping-fedex/       # FedEx exporter
+│       ├── woocommerce-shipping-ups/         # UPS exporter
+│       ├── woocommerce-table-rate-shipping/  # Table Rate Shipping exporter
+│       ├── woocommerce-shipping-canada-post/ # Canada Post exporter
+│       ├── woocommerce-shipping-royalmail/   # Royal Mail exporter
 │       └── README.md                  # Module documentation
 ├── tests/                             # Test files
 │   ├── test-instantiate.php          # Class instantiation tests
@@ -141,6 +156,36 @@ Releases are created using the `create-release.sh` script, which:
 - Generates an optimized autoloader
 - Creates a clean package excluding development files
 - Validates package structure and functionality
+
+## Changelog
+
+### Version 0.4.0 (Current)
+🎉 **Major Release**: Complete shipping method exporter support
+
+**New Features:**
+- ✅ **Table Rate Shipping Exporter**: Custom rate table configurations with database table support
+- ✅ **Canada Post Shipping Exporter**: Complete exporter with zone-based configuration support  
+- ✅ **Royal Mail Shipping Exporter**: Comprehensive service support for UK and international shipping
+- ✅ **FedEx Shipping Exporter**: Complete exporter with API credentials and service configurations
+- ✅ **UPS Shipping Exporter**: Complete exporter with account settings and service preferences
+
+**Improvements:**
+- All major shipping method exporters now implemented (7 total)
+- Comprehensive zone-based configuration support
+- Enhanced data sanitization for sensitive information
+- Complete documentation for all exporters
+- Test files for all new exporters
+
+**Technical:**
+- Modular architecture for easy extension
+- Consistent API across all shipping exporters
+- Blueprint integration for seamless exports
+- Production-ready code with comprehensive error handling
+
+### Previous Versions
+- **0.3.0**: Initial shipping exporters (Australia Post, USPS)
+- **0.2.0**: Blueprint exporter enhancements
+- **0.1.0**: Initial release with core functionality
 
 ## License
 
