@@ -39,6 +39,9 @@ class Shipping_Methods_Exporter {
 		'woocommerce-shipping-usps'           => 'WooCommerce USPS Shipping',
 		'woocommerce-shipping-fedex'          => 'WooCommerce Fedex Shipping',
 		'woocommerce-shipping-ups'            => 'WooCommerce UPS Shipping',
+		'woocommerce-table-rate-shipping'     => 'WooCommerce Table Rate Shipping',
+		'woocommerce-shipping-canada-post'    => 'WooCommerce Canada Post Shipping',
+		'woocommerce-shipping-royalmail'      => 'WooCommerce Royal Mail Shipping',
 	);
 
 	/**
@@ -93,7 +96,7 @@ class Shipping_Methods_Exporter {
 				}
 			} catch ( Exception $e ) {
 				Logger::error(
-					'❌ Error loading ' . $plugin_name . ' exporter',
+					'Error loading ' . $plugin_name . ' exporter',
 					array(
 						'path'  => $exporter_path,
 						'error' => $e->getMessage(),
@@ -104,7 +107,7 @@ class Shipping_Methods_Exporter {
 			}
 		} else {
 			Logger::warning(
-				'⚠️ Shipping exporter file not found',
+				'Shipping exporter file not found',
 				array(
 					'path' => $exporter_path,
 				)
