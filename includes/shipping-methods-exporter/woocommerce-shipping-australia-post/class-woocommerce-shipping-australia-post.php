@@ -90,7 +90,7 @@ class WooCommerce_Shipping_Australia_Post implements StepExporter, HasAlias {
 			$method_settings = $this->get_method_settings_for_zone( $zone );
 			if ( ! empty( $method_settings ) ) {
 				$option_name                  = 'woocommerce_australia_post_' . $zone['method_instance_id'] . '_settings';
-			$site_options[ $option_name ] = $this->sanitize_settings( $method_settings );
+				$site_options[ $option_name ] = $this->sanitize_settings( $method_settings );
 			}
 		}
 
