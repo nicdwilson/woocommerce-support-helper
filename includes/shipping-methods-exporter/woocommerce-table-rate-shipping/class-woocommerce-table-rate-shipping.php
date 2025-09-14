@@ -392,8 +392,7 @@ class WooCommerce_Table_Rate_Shipping implements StepExporter, HasAlias {
 	public function is_plugin_active() {
 		// Check for common table rate shipping plugin files.
 		$possible_files = array(
-			self::PLUGIN_SLUG . '/' . self::PLUGIN_SLUG . '.php',
-			'woocommerce-table-rate-shipping/woocommerce-table-rate-shipping.php',
+			self::PLUGIN_SLUG . '/' . self::PLUGIN_SLUG . '.php'
 		);
 
 		foreach ( $possible_files as $file ) {

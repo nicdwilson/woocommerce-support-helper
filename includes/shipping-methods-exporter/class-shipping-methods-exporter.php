@@ -342,7 +342,7 @@ class Shipping_Methods_Exporter {
 		$active_exporters = $this->get_active_shipping_exporters();
 
 		foreach ( $active_exporters as $plugin_slug => $exporter ) {
-			$plugin_name = isset( $this->supported_plugins[ $plugin_slug ] ) ? $this->supported_plugins[ $plugin_slug ] : ucfirst( str_replace( '-', ' ', $plugin_slug ) );
+			$plugin_name = isset( $this->supported_plugins[ $plugin_slug ] ) ? $this->supported_plugins[ $plugin_slug ]['label']: '';
 
 			$shipping_items[] = array(
 				'id'      => $plugin_slug,
