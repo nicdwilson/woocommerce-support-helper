@@ -48,6 +48,21 @@ class Module_Loader {
 		// Load Shipping Methods Exporter module.
 		$this->load_shipping_methods_exporter_module();
 
+<<<<<<< Updated upstream
+=======
+		/**
+		 * Load Support Admin UI module.
+		 * 
+		 * Temporarily disabled to focus on core export functionality.
+		 * This module provides the React-based activity panel integration
+		 * for the Support Helper. When enabled, it adds a Support Helper
+		 * tab to the WooCommerce activity panel with export functionality.
+		 * 
+		 * To re-enable: Uncomment the line below and rebuild JavaScript assets.
+		 */
+		$this->load_support_admin_ui_module(); // Temporarily disabled
+
+>>>>>>> Stashed changes
 		// Future modules can be loaded here.
 		// $this->load_other_module().
 	}
