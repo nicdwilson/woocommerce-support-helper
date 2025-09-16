@@ -48,21 +48,12 @@ class Module_Loader {
 		// Load Shipping Methods Exporter module.
 		$this->load_shipping_methods_exporter_module();
 
-<<<<<<< Updated upstream
-=======
 		/**
 		 * Load Support Admin UI module.
-		 * 
-		 * Temporarily disabled to focus on core export functionality.
-		 * This module provides the React-based activity panel integration
-		 * for the Support Helper. When enabled, it adds a Support Helper
-		 * tab to the WooCommerce activity panel with export functionality.
-		 * 
-		 * To re-enable: Uncomment the line below and rebuild JavaScript assets.
+		 * This module provides the React-based activity panel integration.
 		 */
-		$this->load_support_admin_ui_module(); // Temporarily disabled
+		$this->load_support_admin_ui_module(); 
 
->>>>>>> Stashed changes
 		// Future modules can be loaded here.
 		// $this->load_other_module().
 	}
@@ -150,6 +141,28 @@ class Module_Loader {
 		return isset( $this->modules[ $name ] );
 	}
 
+
+	/**
+	 * Load the Support Admin UI module.
+	 */
+	private function load_support_admin_ui_module() {
+
+		try {
+			$support_admin_ui                      = new \WooCommerceSupportHelper\SupportAdminUI\Support_Admin_UI();
+			$this->modules['support_admin_ui']     = $support_admin_ui;
+			$this->module_info['support_admin_ui'] = $support_admin_ui->get_module_info();
+		} catch ( Exception $e ) {
+			if ( class_exists( '\WooCommerceSupportHelper\Logger' ) ) {
+				\WooCommerceSupportHelper\Logger::debug(
+					'Error creating Support Admin UI instance',
+					array(
+						'error' => $e->getMessage(),
+						'trace' => $e->getTraceAsString(),
+					)
+				);
+			}
+		}
+	}
 
 	/**
 	 * Get module count
